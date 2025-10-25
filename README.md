@@ -327,20 +327,6 @@ O projeto implementa várias camadas de segurança:
 - Validação de ownership (usuário só acessa seus próprios dados)
 - Cascade delete para limpeza de dados relacionados
 
-## 🧪 Testes
-
-Execute os testes com:
-
-```bash
-# Testes unitários
-mvn test
-
-# Testes de integração
-mvn verify
-
-# Com cobertura
-mvn clean test jacoco:report
-```
 
 ## 🚀 Desenvolvimento
 
@@ -409,15 +395,3 @@ Acesse: `http://localhost:8080/api/swagger-ui.html`
 3. Commit suas mudanças (`git commit -m 'Adiciona nova feature'`)
 4. Push para a branch (`git push origin feature/nova-feature`)
 5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
-## 👥 Autores
-
-- **Seu Nome** - [GitHub](https://github.com/seu-usuario)
-
-## 📞 Suporte
-
-Para suporte, envie um email para seu-email@example.com ou abra uma issue no GitHub.
