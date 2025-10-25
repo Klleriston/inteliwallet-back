@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class UpdateTransactionRequest {
 
-    private String type; // "income" ou "expense"
+    private String type;
 
     @DecimalMin(value = "0.01", message = "Valor deve ser maior que zero")
     private BigDecimal amount;

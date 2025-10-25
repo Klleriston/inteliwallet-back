@@ -1,5 +1,6 @@
 package com.inteliwallet.service;
 
+import com.inteliwallet.dto.request.ChangePasswordRequest;
 import com.inteliwallet.dto.request.UpdateUserRequest;
 import com.inteliwallet.dto.response.UserResponse;
 import com.inteliwallet.entity.User;
@@ -8,6 +9,7 @@ import com.inteliwallet.exception.ResourceNotFoundException;
 import com.inteliwallet.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -17,6 +19,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final PasswordEncoder passwordEncoder;
 
     public UserResponse getProfile(String userId) {
         User user = userRepository.findById(userId)
@@ -63,6 +66,19 @@ public class UserService {
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         userRepository.delete(user);
+    }
+
+    @Transactional
+    public void changePassword(String userId, ChangePasswordRequest request) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+
+        if (!passwordEncoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            throw new BadRequestException("Senha atual incorreta");
+        }
+
+        user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        userRepository.save(user);
     }
 
     private UserResponse mapToUserResponse(User user) {

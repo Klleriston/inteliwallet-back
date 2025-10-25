@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 public class CreateTransactionRequest {
 
     @NotBlank(message = "Tipo é obrigatório (income ou expense)")
-    private String type; // "income" ou "expense"
+    private String type;
 
     @NotNull(message = "Valor é obrigatório")
     @DecimalMin(value = "0.01", message = "Valor deve ser maior que zero")
@@ -28,5 +28,5 @@ public class CreateTransactionRequest {
     @NotBlank(message = "Categoria é obrigatória")
     private String category;
 
-    private LocalDateTime date; // Opcional, usa data atual se não fornecido
+    private LocalDateTime date;
 }

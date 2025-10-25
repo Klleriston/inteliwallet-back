@@ -23,7 +23,7 @@ public class CreateGoalRequest {
     @DecimalMin(value = "0.01", message = "Valor deve ser maior que zero")
     private BigDecimal targetAmount;
 
-    private BigDecimal currentAmount; // Opcional, default 0
+    private BigDecimal currentAmount;
 
     @NotBlank(message = "Categoria é obrigatória")
     private String category;

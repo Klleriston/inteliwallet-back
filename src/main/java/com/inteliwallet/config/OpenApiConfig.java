@@ -22,7 +22,6 @@ public class OpenApiConfig {
 
     @Bean
     public OpenAPI customOpenAPI() {
-        // Define o esquema de segurança JWT
         final String securitySchemeName = "Bearer Authentication";
 
         return new OpenAPI()

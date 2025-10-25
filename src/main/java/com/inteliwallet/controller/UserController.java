@@ -1,5 +1,6 @@
 package com.inteliwallet.controller;
 
+import com.inteliwallet.dto.request.ChangePasswordRequest;
 import com.inteliwallet.dto.request.UpdateUserRequest;
 import com.inteliwallet.dto.response.UserResponse;
 import com.inteliwallet.security.CurrentUser;
@@ -32,6 +33,15 @@ public class UserController {
     @DeleteMapping("/profile")
     public ResponseEntity<Void> deleteAccount(@CurrentUser String userId) {
         userService.deleteAccount(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+        @CurrentUser String userId,
+        @Valid @RequestBody ChangePasswordRequest request
+    ) {
+        userService.changePassword(userId, request);
         return ResponseEntity.noContent().build();
     }
 }

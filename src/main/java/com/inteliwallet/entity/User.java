@@ -43,6 +43,10 @@ public class User {
     @Column(name = "has_completed_onboarding", nullable = false)
     private Boolean hasCompletedOnboarding = false;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private UserPlan plan = UserPlan.FREE;
+
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

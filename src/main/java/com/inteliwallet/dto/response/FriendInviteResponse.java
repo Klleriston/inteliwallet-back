@@ -16,7 +16,7 @@ public class FriendInviteResponse {
     private String toUserId;
     private String status; // "pending", "accepted", "declined"
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     @Data

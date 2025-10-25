@@ -16,7 +16,7 @@ public class UserResponse {
     private String email;
     private String avatar;
 
-    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
 
     private Integer totalPoints;

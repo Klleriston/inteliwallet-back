@@ -3,6 +3,7 @@ package com.inteliwallet.controller;
 import com.inteliwallet.dto.request.CreateTransactionRequest;
 import com.inteliwallet.dto.request.UpdateTransactionRequest;
 import com.inteliwallet.dto.response.TransactionResponse;
+import com.inteliwallet.dto.response.TransactionStatsResponse;
 import com.inteliwallet.security.CurrentUser;
 import com.inteliwallet.service.TransactionService;
 import jakarta.validation.Valid;
@@ -56,5 +57,10 @@ public class TransactionController {
     ) {
         transactionService.deleteTransaction(userId, id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/stats")
+    public ResponseEntity<TransactionStatsResponse> getStats(@CurrentUser String userId) {
+        return ResponseEntity.ok(transactionService.getStats(userId));
     }
 }

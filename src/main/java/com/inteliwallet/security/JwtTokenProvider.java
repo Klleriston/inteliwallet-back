@@ -18,9 +18,7 @@ public class JwtTokenProvider {
     @Value("${jwt.expiration}")
     private long jwtExpiration;
 
-    /**
-     * Gera token JWT para o usuário
-     */
+
     public String generateToken(String userId) {
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpiration);
@@ -33,9 +31,6 @@ public class JwtTokenProvider {
             .compact();
     }
 
-    /**
-     * Extrai userId do token
-     */
     public String getUserIdFromToken(String token) {
         Claims claims = Jwts.parserBuilder()
             .setSigningKey(getSigningKey())
@@ -46,9 +41,6 @@ public class JwtTokenProvider {
         return claims.getSubject();
     }
 
-    /**
-     * Valida token JWT
-     */
     public boolean validateToken(String token) {
         try {
             Jwts.parserBuilder()
