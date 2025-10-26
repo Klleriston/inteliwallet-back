@@ -49,7 +49,7 @@ public class WaitlistService {
             WaitlistUser savedUser = waitlistUserRepository.save(waitlistUser);
             logger.info("Usuário salvo na waitlist com ID: {}", savedUser.getId());
 
-            boolean emailSent = mailService.sendWaitlistWelcomeEmail(
+            /*boolean emailSent = mailService.sendWaitlistWelcomeEmail(
                     savedUser.getEmail(),
                     savedUser.getName()
             );
@@ -61,12 +61,13 @@ public class WaitlistService {
             } else {
                 logger.warn("Falha ao enviar email de boas-vindas para: {}", savedUser.getEmail());
             }
+            */
 
             return WaitlistResponseDTO.builder()
                     .id(savedUser.getId())
                     .name(savedUser.getName())
                     .email(savedUser.getEmail())
-                    .emailSent(emailSent)
+                    .emailSent(false)
                     .createdAt(savedUser.getCreatedAt())
                     .message("Cadastro realizado com sucesso! Verifique seu email.")
                     .build();

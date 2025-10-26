@@ -3,6 +3,7 @@ package com.inteliwallet.controller;
 import com.inteliwallet.dto.request.WaitlistRequestDTO;
 import com.inteliwallet.dto.response.WaitlistResponseDTO;
 import com.inteliwallet.entity.WaitlistUser;
+import com.inteliwallet.service.UserService;
 import com.inteliwallet.service.WaitlistService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -27,6 +28,9 @@ import java.util.Map;
 public class WaitlistController {
 
     private static final Logger logger = LoggerFactory.getLogger(WaitlistController.class);
+
+    @Autowired
+    private UserService userService;
 
     @Autowired
     private WaitlistService waitlistService;
