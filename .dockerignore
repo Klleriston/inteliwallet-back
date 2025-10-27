@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# CI/CD
+.github
+
+# Documentation
+*.md
+README.md
+LICENSE
+
+# IDE
+.idea
+.vscode
+*.iml
+*.ipr
+*.iws
+
+# Build output
+target/
+build/
+
+# Test files
+src/test/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Azure
+.azure/
+azure-webapp.yml
+AZURE_SETUP.md
+
+# GCP
+.gcp/
+gcp-key.json
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Cloud Functions
+cloud-functions/
+
+# Maven wrapper (já está no base image)
+.mvn/
+mvnw
+mvnw.cmd

@@ -15,12 +15,10 @@ public class SecurityHeadersFilter implements Filter {
 
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
-        // Remove headers que expõem informações do servidor
         httpResponse.setHeader("Server", "");
         httpResponse.setHeader("X-Powered-By", "");
         httpResponse.setHeader("X-Application-Context", "");
 
-        // Adiciona headers de segurança
         httpResponse.setHeader("X-Content-Type-Options", "nosniff");
         httpResponse.setHeader("X-Frame-Options", "DENY");
         httpResponse.setHeader("X-XSS-Protection", "1; mode=block");

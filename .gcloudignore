@@ -1,0 +1,55 @@
+# This file specifies files that are *not* uploaded to Google Cloud Platform
+# using gcloud. It follows the same syntax as .gitignore
+
+.gcloudignore
+.git
+.gitignore
+
+# Build outputs
+target/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+# Environment
+.env
+.env.local
+
+# Documentation
+*.md
+README.md
+LICENSE
+
+# Azure
+.azure/
+azure-webapp.yml
+
+# GCP local files
+.gcp/
+gcp-key.json
+
+# Cloud Functions
+cloud-functions/
+
+# Docker
+docker-compose.yml
+
+# Test files
+src/test/
+
+# Maven wrapper
+.mvn/
+mvnw
+mvnw.cmd
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

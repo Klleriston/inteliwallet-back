@@ -1,68 +1,28 @@
 package com.inteliwallet.service;
 
-import com.resend.Resend;
-import com.resend.core.exception.ResendException;
-import com.resend.services.emails.model.CreateEmailOptions;
-import com.resend.services.emails.model.CreateEmailResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+/**
+ * Serviço de email temporariamente desabilitado.
+ * O envio de emails será feito por um serviço externo separado que consumirá o mesmo database.
+ */
 @Service
 public class MailService {
 
     private static final Logger logger = LoggerFactory.getLogger(MailService.class);
 
-    private final Resend resend;
-
-    @Value("${resend.api.key}")
-    private String apiKey;
-
-    public MailService(@Value("${resend.api.key}") String apiKey) {
-        this.resend = new Resend(apiKey);
-    }
-
     public boolean sendWaitlistWelcomeEmail(String toEmail, String userName) {
-        try {
-            String htmlContent = buildWaitlistWelcomeHtml(userName);
-
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from("Acme <onboarding@resend.dev>")
-                    .to(toEmail)
-                    .subject("🎉 Bem-vindo à lista de espera da InteliWallet!")
-                    .html(htmlContent)
-                    .build();
-
-            CreateEmailResponse response = resend.emails().send(params);
-            logger.info("Email enviado com sucesso para: {} - ID: {}", toEmail, response.getId());
-            return true;
-
-        } catch (ResendException e) {
-            logger.error("Erro ao enviar email para: {}", toEmail, e);
-            return false;
-        }
+        logger.info("Email de boas-vindas seria enviado para: {} (funcionalidade desabilitada - será implementada em serviço separado)", toEmail);
+        // TODO: O serviço externo de email irá monitorar o database e enviar emails automaticamente
+        return true;
     }
 
     public boolean sendLaunchNotificationEmail(String toEmail, String userName, String temporaryPassword) {
-        try {
-            String htmlContent = buildLaunchNotificationHtml(userName, temporaryPassword);
-
-            CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from("Acme <onboarding@resend.dev>")
-                    .to(toEmail)
-                    .subject("🚀 A InteliWallet está no ar! Acesse agora")
-                    .html(htmlContent)
-                    .build();
-
-            CreateEmailResponse response = resend.emails().send(params);
-            logger.info("Email de lançamento enviado para: {} - ID: {}", toEmail, response.getId());
-            return true;
-
-        } catch (ResendException e) {
-            logger.error("Erro ao enviar email de lançamento para: {}", toEmail, e);
-            return false;
-        }
+        logger.info("Email de lançamento seria enviado para: {} (funcionalidade desabilitada - será implementada em serviço separado)", toEmail);
+        // TODO: O serviço externo de email irá monitorar o database e enviar emails automaticamente
+        return true;
     }
 
     private String buildWaitlistWelcomeHtml(String userName) {

@@ -35,3 +35,12 @@ build/
 ### Environment ###
 .env
 .env.local
+
+### GCP ###
+.gcp/*.json
+gcp-key.json
+.gcp/credentials
+!.gcp/deployment-checklist.md
+!.gcp/README.md
+!.gcp/REFACTORING_SUMMARY.md
+!.gcp/GITHUB_SECRETS_SETUP.md
