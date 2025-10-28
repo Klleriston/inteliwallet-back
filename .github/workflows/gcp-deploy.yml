@@ -64,7 +64,14 @@ jobs:
           --set-secrets="DATABASE_URL=DATABASE_URL:latest,\
           DATABASE_USERNAME=DATABASE_USERNAME:latest,\
           DATABASE_PASSWORD=DATABASE_PASSWORD:latest,\
-          JWT_SECRET=JWT_SECRET:latest"
+          JWT_SECRET=JWT_SECRET:latest,\
+          ABACATEPAY_API_KEY=ABACATEPAY_API_KEY:latest,\
+          ABACATEPAY_RETURN_URL=ABACATEPAY_RETURN_URL:latest,\
+          ABACATEPAY_COMPLETION_URL=ABACATEPAY_COMPLETION_URL:latest" \
+          --startup-cpu-boost \
+          --startup-probe-period=240 \
+          --startup-probe-timeout=10 \
+          --startup-probe-failure-threshold=3
 
     - name: Get Cloud Run URL
       run: |
