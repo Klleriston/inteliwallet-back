@@ -17,6 +17,8 @@ public interface GoalRepository extends JpaRepository<Goal, String> {
 
     List<Goal> findByUserIdAndStatus(String userId, GoalStatus status);
 
+    Long countByUserIdAndStatus(String userId, GoalStatus status);
+
     @Query("SELECT COALESCE(SUM(g.targetAmount), 0) FROM Goal g " +
            "WHERE g.user.id = :userId AND g.status = 'ACTIVE'")
     BigDecimal sumTargetAmountByUserId(@Param("userId") String userId);

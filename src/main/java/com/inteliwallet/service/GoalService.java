@@ -6,6 +6,7 @@ import com.inteliwallet.dto.request.UpdateGoalRequest;
 import com.inteliwallet.dto.response.GoalResponse;
 import com.inteliwallet.entity.Goal;
 import com.inteliwallet.entity.User;
+import com.inteliwallet.exception.BadRequestException;
 import com.inteliwallet.exception.ResourceNotFoundException;
 import com.inteliwallet.repository.GoalRepository;
 import com.inteliwallet.repository.UserRepository;
@@ -51,6 +52,15 @@ public class GoalService {
     public GoalResponse createGoal(String userId, CreateGoalRequest request) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+
+        long activeGoalsCount = goalRepository.countByUserIdAndStatus(userId, Goal.GoalStatus.ACTIVE);
+        if (activeGoalsCount >= user.getPlan().getMaxGoals()) {
+            throw new BadRequestException(
+                "Você atingiu o limite de metas ativas do seu plano (" +
+                user.getPlan().getMaxGoals() + " metas). " +
+                "Upgrade seu plano para criar mais metas."
+            );
+        }
 
         Goal goal = new Goal();
         goal.setUser(user);

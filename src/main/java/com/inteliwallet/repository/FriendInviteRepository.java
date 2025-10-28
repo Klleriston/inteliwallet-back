@@ -17,14 +17,14 @@ public interface FriendInviteRepository extends JpaRepository<FriendInvite, Stri
 
     List<FriendInvite> findByFromUserIdAndStatus(String fromUserId, InviteStatus status);
 
-    @Query("SELECT CASE WHEN COUNT(i) > 0 THEN true ELSE false END " +
-           "FROM FriendInvite i " +
-           "WHERE ((i.fromUser.id = :userId AND i.toUser.id = :friendId) " +
-           "OR (i.fromUser.id = :friendId AND i.toUser.id = :userId)) " +
-           "AND i.status = 'PENDING'")
+    @Query("SELECT COUNT(i) > 0 " +
+            "FROM FriendInvite i " +
+            "WHERE ((i.fromUser.id = :userId AND i.toUser.id = :friendId) " +
+            "OR (i.fromUser.id = :friendId AND i.toUser.id = :userId)) " +
+            "AND i.status = 'PENDING'")
     Boolean existsPendingInvite(
-        @Param("userId") String userId,
-        @Param("friendId") String friendId
+            @Param("userId") String userId,
+            @Param("friendId") String friendId
     );
 
     Optional<FriendInvite> findByFromUserIdAndToUserIdAndStatus(
