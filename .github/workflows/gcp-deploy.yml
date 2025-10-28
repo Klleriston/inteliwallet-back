@@ -68,10 +68,7 @@ jobs:
           ABACATEPAY_API_KEY=ABACATEPAY_API_KEY:latest,\
           ABACATEPAY_RETURN_URL=ABACATEPAY_RETURN_URL:latest,\
           ABACATEPAY_COMPLETION_URL=ABACATEPAY_COMPLETION_URL:latest" \
-          --startup-cpu-boost \
-          --startup-probe-period=240 \
-          --startup-probe-timeout=10 \
-          --startup-probe-failure-threshold=3
+          --cpu-boost
 
     - name: Get Cloud Run URL
       run: |
