@@ -63,6 +63,7 @@ public class ChallengeGoalService {
         return mapToChallengeResponse(challenge);
     }
 
+    @Transactional(readOnly = true)
     public List<ChallengeGoalResponse> listMyChallenges(String userId) {
         List<ChallengeGoal> challenges = challengeGoalRepository.findByParticipantUserId(userId);
         return challenges.stream()
@@ -70,6 +71,7 @@ public class ChallengeGoalService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ChallengeGoalResponse> listActiveChallenges(String userId) {
         List<ChallengeGoal> challenges = challengeGoalRepository.findByParticipantUserIdAndStatus(
             userId, ChallengeStatus.ACTIVE
@@ -79,6 +81,7 @@ public class ChallengeGoalService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<ChallengeGoalResponse> listAvailableChallenges() {
         List<ChallengeGoal> challenges = challengeGoalRepository.findAvailableChallenges();
         return challenges.stream()
@@ -86,6 +89,7 @@ public class ChallengeGoalService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public ChallengeGoalResponse getChallengeById(String challengeId) {
         ChallengeGoal challenge = challengeGoalRepository.findById(challengeId)
             .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));
@@ -224,7 +228,7 @@ public class ChallengeGoalService {
         return mapToChallengeResponse(challenge);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public List<ChallengeParticipantResponse> listParticipants(String challengeId) {
         ChallengeGoal challenge = challengeGoalRepository.findById(challengeId)
             .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));

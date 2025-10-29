@@ -27,6 +27,7 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
+    private final StreakService streakService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -54,6 +55,7 @@ public class AuthService {
         return new AuthResponse(token, mapToUserResponse(user));
     }
 
+    @Transactional
     public AuthResponse login(LoginRequest request) {
         try {
             Authentication authentication = authenticationManager.authenticate(
@@ -65,6 +67,12 @@ public class AuthService {
 
             User user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadRequestException("Credenciais inválidas"));
+
+            try {
+                streakService.recordDailyLogin(user.getId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
             String token = tokenProvider.generateToken(user.getId());
 
@@ -87,6 +95,8 @@ public class AuthService {
         if (response.getHasCompletedOnboarding() == null) {
             response.setHasCompletedOnboarding(false);
         }
+        response.setPlan(user.getPlan().getValue());
+        response.setPlanDisplayName(user.getPlan().getDisplayName());
         return response;
     }
 }

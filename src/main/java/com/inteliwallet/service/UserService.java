@@ -82,6 +82,9 @@ public class UserService {
     }
 
     private UserResponse mapToUserResponse(User user) {
-        return modelMapper.map(user, UserResponse.class);
+        UserResponse response = modelMapper.map(user, UserResponse.class);
+        response.setPlan(user.getPlan().getValue());
+        response.setPlanDisplayName(user.getPlan().getDisplayName());
+        return response;
     }
 }

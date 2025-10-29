@@ -4,9 +4,9 @@ import lombok.Getter;
 
 @Getter
 public enum UserPlan {
-    FREE("Free", 3, 0, 0.0),
-    STANDARD("Standard", 6, 3, 5.0),
-    PLUS("Plus", 10, 6, 20.0);
+    FREE("Free", 5, 3, 0.0),
+    STANDARD("Standard", 10, 5, 5.0),
+    PLUS("Plus", 20, 10, 20.0);
 
     private final String displayName;
     private final int maxGoals;

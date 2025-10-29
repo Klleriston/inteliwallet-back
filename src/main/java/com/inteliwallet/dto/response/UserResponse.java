@@ -22,4 +22,6 @@ public class UserResponse {
     private Integer totalPoints;
     private Integer level;
     private Boolean hasCompletedOnboarding;
+    private String plan;
+    private String planDisplayName;
 }

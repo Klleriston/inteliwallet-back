@@ -44,4 +44,12 @@ public class UserController {
         userService.changePassword(userId, request);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/avatar")
+    public ResponseEntity<UserResponse> updateAvatar(
+        @CurrentUser String userId,
+        @RequestBody UpdateUserRequest request
+    ) {
+        return ResponseEntity.ok(userService.updateProfile(userId, request));
+    }
 }

@@ -132,6 +132,7 @@ public class GoalService {
     private GoalResponse mapToResponse(Goal goal) {
         GoalResponse response = modelMapper.map(goal, GoalResponse.class);
         response.setStatus(goal.getStatus().getValue());
+        response.setProgressPercentage(goal.getProgressPercentage());
         return response;
     }
 }

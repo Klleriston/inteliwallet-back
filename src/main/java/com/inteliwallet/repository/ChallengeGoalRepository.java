@@ -22,12 +22,14 @@ public interface ChallengeGoalRepository extends JpaRepository<ChallengeGoal, St
     List<ChallengeGoal> findActiveChallenge(@Param("status") ChallengeStatus status);
 
     @Query("SELECT c FROM ChallengeGoal c " +
+           "JOIN FETCH c.creator " +
            "JOIN c.participants p " +
            "WHERE p.user.id = :userId " +
            "ORDER BY c.createdAt DESC")
     List<ChallengeGoal> findByParticipantUserId(@Param("userId") String userId);
 
     @Query("SELECT c FROM ChallengeGoal c " +
+           "JOIN FETCH c.creator " +
            "JOIN c.participants p " +
            "WHERE p.user.id = :userId AND c.status = :status " +
            "ORDER BY c.createdAt DESC")
@@ -37,12 +39,15 @@ public interface ChallengeGoalRepository extends JpaRepository<ChallengeGoal, St
     );
 
     @Query("SELECT COUNT(c) FROM ChallengeGoal c " +
-           "WHERE c.creator.id = :userId AND c.status = com.inteliwallet.entity.ChallengeGoal$ChallengeStatus.ACTIVE")
+           "WHERE c.creator.id = :userId AND c.status = 'ACTIVE'")
     Long countActiveCreatedChallengesByUserId(@Param("userId") String userId);
 
-    @Query("SELECT c FROM ChallengeGoal c " +
-           "WHERE c.status = com.inteliwallet.entity.ChallengeGoal$ChallengeStatus.ACTIVE " +
-           "AND SIZE(c.participants) < c.maxParticipants " +
+    @Query("SELECT DISTINCT c FROM ChallengeGoal c " +
+           "JOIN FETCH c.creator " +
+           "LEFT JOIN c.participants p " +
+           "WHERE c.status = 'ACTIVE' " +
+           "AND (c.maxParticipants IS NULL OR " +
+           "(SELECT COUNT(p2) FROM ChallengeParticipant p2 WHERE p2.challengeGoal.id = c.id AND p2.status = 'ACTIVE') < c.maxParticipants) " +
            "ORDER BY c.createdAt DESC")
     List<ChallengeGoal> findAvailableChallenges();
 }

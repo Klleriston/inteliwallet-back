@@ -25,6 +25,7 @@ public class StreakService {
     private final ChallengeStreakRepository challengeStreakRepository;
     private final UserRepository userRepository;
     private final ChallengeParticipantRepository participantRepository;
+    private final AchievementService achievementService;
 
 
     @Transactional
@@ -47,6 +48,59 @@ public class StreakService {
 
         streak = userStreakRepository.save(streak);
         return mapToUserStreakResponse(streak);
+    }
+
+    @Transactional
+    public UserStreakResponse recordDailyLogin(String userId) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
+
+        UserStreak streak = userStreakRepository
+            .findByUserIdAndStreakType(userId, StreakType.DAILY_LOGIN)
+            .orElseGet(() -> {
+                UserStreak newStreak = new UserStreak();
+                newStreak.setUser(user);
+                newStreak.setStreakType(StreakType.DAILY_LOGIN);
+                return newStreak;
+            });
+
+        LocalDate today = LocalDate.now();
+
+        if (streak.getLastActivityDate() != null && streak.getLastActivityDate().equals(today)) {
+            log.info("Login já registrado hoje para usuário {}", userId);
+            return mapToUserStreakResponse(streak);
+        }
+
+        streak.checkAndUpdateStreak(today);
+        streak.incrementStreak();
+        streak = userStreakRepository.save(streak);
+
+        try {
+            updateStreakAchievements(userId, streak.getCurrentStreak());
+        } catch (Exception e) {
+            log.error("Erro ao atualizar conquistas de streak para usuário {}: {}", userId, e.getMessage());
+        }
+
+        log.info("Streak de login registrada para usuário {}: {} dias", userId, streak.getCurrentStreak());
+        return mapToUserStreakResponse(streak);
+    }
+
+    private void updateStreakAchievements(String userId, Integer currentStreak) {
+        if (currentStreak >= 7) {
+            achievementService.updateProgress(userId, "STREAK_7_DAYS", currentStreak);
+        }
+        if (currentStreak >= 30) {
+            achievementService.updateProgress(userId, "STREAK_30_DAYS", currentStreak);
+        }
+        if (currentStreak >= 90) {
+            achievementService.updateProgress(userId, "STREAK_90_DAYS", currentStreak);
+        }
+        if (currentStreak >= 180) {
+            achievementService.updateProgress(userId, "STREAK_180_DAYS", currentStreak);
+        }
+        if (currentStreak >= 365) {
+            achievementService.updateProgress(userId, "STREAK_365_DAYS", currentStreak);
+        }
     }
 
     public List<UserStreakResponse> getUserStreaks(String userId) {

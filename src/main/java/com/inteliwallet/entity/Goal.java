@@ -8,6 +8,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -40,7 +41,7 @@ public class Goal {
     private String category;
 
     @Column(nullable = false)
-    private LocalDateTime deadline;
+    private LocalDate deadline;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -80,7 +81,7 @@ public class Goal {
 
     public void checkOverdue() {
         if (this.status == GoalStatus.ACTIVE &&
-            LocalDateTime.now().isAfter(this.deadline)) {
+            LocalDate.now().isAfter(this.deadline)) {
             this.status = GoalStatus.OVERDUE;
         }
     }
