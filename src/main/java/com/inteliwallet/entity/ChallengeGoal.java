@@ -57,7 +57,7 @@ public class ChallengeGoal {
     private Integer maxParticipants;
 
     @Column(name = "reward_points")
-    private Integer rewardPoints = 0;
+    private Integer rewardPoints = 100;
 
     @OneToMany(mappedBy = "challengeGoal", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ChallengeParticipant> participants;

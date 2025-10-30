@@ -30,6 +30,7 @@ public class TransactionService {
     private final TransactionRepository transactionRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final AchievementService achievementService;
 
     public List<TransactionResponse> listTransactions(String userId) {
         return transactionRepository.findByUserIdOrderByDateDesc(userId)
@@ -63,6 +64,16 @@ public class TransactionService {
         transaction.setDate(request.getDate() != null ? request.getDate() : LocalDateTime.now());
 
         transaction = transactionRepository.save(transaction);
+
+        try {
+            long totalTransactions = transactionRepository.countByUserId(userId);
+            achievementService.updateProgress(userId, "FIRST_TRANSACTION", (int) totalTransactions);
+            achievementService.updateProgress(userId, "TRANSACTIONS_10", (int) totalTransactions);
+            achievementService.updateProgress(userId, "TRANSACTIONS_50", (int) totalTransactions);
+            achievementService.updateProgress(userId, "TRANSACTIONS_100", (int) totalTransactions);
+            achievementService.updateProgress(userId, "TRANSACTIONS_500", (int) totalTransactions);
+        } catch (Exception e) {
+        }
 
         return mapToResponse(transaction);
     }

@@ -19,6 +19,10 @@ public interface ChallengeParticipantRepository extends JpaRepository<ChallengeP
 
     List<ChallengeParticipant> findByUserIdAndStatus(String userId, ParticipantStatus status);
 
+    Long countByUserId(String userId);
+
+    Long countByUserIdAndStatus(String userId, ParticipantStatus status);
+
     Optional<ChallengeParticipant> findByChallengeGoalIdAndUserId(String challengeGoalId, String userId);
 
     @Query("SELECT CASE WHEN COUNT(p) > 0 THEN true ELSE false END " +
@@ -30,7 +34,7 @@ public interface ChallengeParticipantRepository extends JpaRepository<ChallengeP
     );
 
     @Query("SELECT COUNT(p) FROM ChallengeParticipant p " +
-           "WHERE p.challengeGoal.id = :challengeGoalId AND p.status = com.inteliwallet.entity.ChallengeParticipant$ParticipantStatus.ACTIVE")
+           "WHERE p.challengeGoal.id = :challengeGoalId AND p.status = 'ACTIVE'")
     Long countActiveByChallengeGoalId(@Param("challengeGoalId") String challengeGoalId);
 
     @Query("SELECT p FROM ChallengeParticipant p " +

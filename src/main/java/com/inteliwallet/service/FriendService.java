@@ -27,6 +27,7 @@ public class FriendService {
     private final UserRepository userRepository;
     private final FriendshipRepository friendshipRepository;
     private final FriendInviteRepository friendInviteRepository;
+    private final AchievementService achievementService;
 
     public List<FriendResponse> listFriends(String userId) {
         List<User> friends = friendshipRepository.findFriendsByUserId(userId);
@@ -84,6 +85,7 @@ public class FriendService {
         friendshipRepository.deleteAll(friendships);
     }
 
+    @Transactional(readOnly = true)
     public List<FriendInviteResponse> listInvites(String userId) {
         List<FriendInvite> invites = friendInviteRepository
             .findByToUserIdAndStatus(userId, InviteStatus.PENDING);
@@ -119,6 +121,19 @@ public class FriendService {
 
         friendshipRepository.save(friendship1);
         friendshipRepository.save(friendship2);
+
+        try {
+            long friendCountToUser = friendshipRepository.findFriendsByUserId(userId).size();
+            achievementService.updateProgress(userId, "FIRST_FRIEND", (int) friendCountToUser);
+            achievementService.updateProgress(userId, "FRIENDS_5", (int) friendCountToUser);
+            achievementService.updateProgress(userId, "FRIENDS_20", (int) friendCountToUser);
+
+            long friendCountFromUser = friendshipRepository.findFriendsByUserId(invite.getFromUser().getId()).size();
+            achievementService.updateProgress(invite.getFromUser().getId(), "FIRST_FRIEND", (int) friendCountFromUser);
+            achievementService.updateProgress(invite.getFromUser().getId(), "FRIENDS_5", (int) friendCountFromUser);
+            achievementService.updateProgress(invite.getFromUser().getId(), "FRIENDS_20", (int) friendCountFromUser);
+        } catch (Exception e) {
+        }
 
         return mapToFriendResponse(invite.getFromUser());
     }

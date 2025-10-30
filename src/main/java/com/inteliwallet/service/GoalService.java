@@ -26,6 +26,7 @@ public class GoalService {
     private final GoalRepository goalRepository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final AchievementService achievementService;
 
     public List<GoalResponse> listGoals(String userId) {
         return goalRepository.findByUserIdOrderByCreatedAtDesc(userId)
@@ -72,6 +73,13 @@ public class GoalService {
 
         goal = goalRepository.save(goal);
 
+        try {
+            long totalGoals = goalRepository.countByUserId(userId);
+            achievementService.updateProgress(userId, "FIRST_GOAL", (int) totalGoals);
+            achievementService.updateProgress(userId, "GOALS_CREATED_5", (int) totalGoals);
+        } catch (Exception e) {
+        }
+
         return mapToResponse(goal);
     }
 
@@ -111,8 +119,19 @@ public class GoalService {
             throw new ResourceNotFoundException("Meta não encontrada");
         }
 
+        Goal.GoalStatus previousStatus = goal.getStatus();
         goal.contribute(request.getAmount());
         goal = goalRepository.save(goal);
+
+        if (previousStatus != Goal.GoalStatus.COMPLETED && goal.getStatus() == Goal.GoalStatus.COMPLETED) {
+            try {
+                long completedGoals = goalRepository.countByUserIdAndStatus(userId, Goal.GoalStatus.COMPLETED);
+                achievementService.updateProgress(userId, "FIRST_GOAL_COMPLETED", (int) completedGoals);
+                achievementService.updateProgress(userId, "GOALS_COMPLETED_5", (int) completedGoals);
+                achievementService.updateProgress(userId, "GOALS_COMPLETED_20", (int) completedGoals);
+            } catch (Exception e) {
+            }
+        }
 
         return mapToResponse(goal);
     }

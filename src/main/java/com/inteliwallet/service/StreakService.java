@@ -103,6 +103,7 @@ public class StreakService {
         }
     }
 
+    @Transactional(readOnly = true)
     public List<UserStreakResponse> getUserStreaks(String userId) {
         List<UserStreak> streaks = userStreakRepository.findByUserId(userId);
         return streaks.stream()
@@ -110,6 +111,7 @@ public class StreakService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public List<UserStreakResponse> getActiveUserStreaks(String userId) {
         List<UserStreak> streaks = userStreakRepository.findActiveStreaksByUserId(userId);
         return streaks.stream()
@@ -117,6 +119,7 @@ public class StreakService {
             .collect(Collectors.toList());
     }
 
+    @Transactional(readOnly = true)
     public UserStreakResponse getUserStreakByType(String userId, StreakType streakType) {
         UserStreak streak = userStreakRepository
             .findByUserIdAndStreakType(userId, streakType)
@@ -153,6 +156,8 @@ public class StreakService {
         return mapToChallengeStreakResponse(streak);
     }
 
+
+    @Transactional(readOnly = true)
     public List<ChallengeStreakResponse> getUserChallengeStreaks(String userId) {
         List<ChallengeStreak> streaks = challengeStreakRepository.findByUserId(userId);
         return streaks.stream()
@@ -160,6 +165,8 @@ public class StreakService {
             .collect(Collectors.toList());
     }
 
+
+    @Transactional(readOnly = true)
     public List<ChallengeStreakResponse> getChallengeStreaks(String challengeGoalId) {
         List<ChallengeStreak> streaks = challengeStreakRepository
             .findTopStreaksByChallengeId(challengeGoalId);
@@ -168,6 +175,8 @@ public class StreakService {
             .collect(Collectors.toList());
     }
 
+
+    @Transactional(readOnly = true)
     public ChallengeStreakResponse getChallengeStreakByParticipant(String participantId) {
         ChallengeStreak streak = challengeStreakRepository
             .findByParticipantId(participantId)

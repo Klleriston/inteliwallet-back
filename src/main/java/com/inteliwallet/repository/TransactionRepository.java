@@ -68,4 +68,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, String
         @Param("userId") String userId,
         @Param("startDate") LocalDateTime startDate
     );
+
+    long countByUserId(String userId);
 }

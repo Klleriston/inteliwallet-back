@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
@@ -31,6 +32,7 @@ public class AbacatePayService {
 
     private final RestTemplate restTemplate = new RestTemplate();
 
+    @Transactional
     public AbacatePayBillingResponse createBilling(
         BigDecimal amount,
         String customerEmail,
@@ -89,6 +91,7 @@ public class AbacatePayService {
         }
     }
 
+    @Transactional()
     public AbacatePayBillingResponse getBilling(String billingId) {
         try {
             String url = apiUrl + "/billing/get?id=" + billingId;

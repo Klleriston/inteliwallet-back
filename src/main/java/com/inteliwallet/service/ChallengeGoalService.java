@@ -28,6 +28,7 @@ public class ChallengeGoalService {
     private final ChallengeParticipantRepository participantRepository;
     private final UserRepository userRepository;
     private final StreakService streakService;
+    private final AchievementService achievementService;
 
     @Transactional
     public ChallengeGoalResponse createChallenge(String userId, CreateChallengeGoalRequest request) {
@@ -50,7 +51,7 @@ public class ChallengeGoalService {
         challenge.setCategory(request.getCategory());
         challenge.setDeadline(request.getDeadline());
         challenge.setMaxParticipants(request.getMaxParticipants());
-        challenge.setRewardPoints(request.getRewardPoints());
+        challenge.setRewardPoints(request.getRewardPoints() != null ? request.getRewardPoints() : 100);
 
         challenge = challengeGoalRepository.save(challenge);
 
@@ -59,6 +60,12 @@ public class ChallengeGoalService {
         participant.setUser(creator);
         participant.setIsCreator(true);
         participantRepository.save(participant);
+
+        try {
+            long createdChallenges = challengeGoalRepository.countActiveCreatedChallengesByUserId(userId);
+            achievementService.updateProgress(userId, "CHALLENGES_CREATED_3", (int) createdChallenges);
+        } catch (Exception e) {
+        }
 
         return mapToChallengeResponse(challenge);
     }
@@ -165,6 +172,14 @@ public class ChallengeGoalService {
         participant.setIsCreator(false);
 
         participant = participantRepository.save(participant);
+
+        try {
+            long totalParticipations = participantRepository.countByUserId(userId);
+            achievementService.updateProgress(userId, "FIRST_CHALLENGE", (int) totalParticipations);
+        } catch (Exception e) {
+            // Log error but don't fail join
+        }
+
         return mapToParticipantResponse(participant, challenge.getTargetAmount());
     }
 
@@ -254,6 +269,16 @@ public class ChallengeGoalService {
                 participant.setRewardClaimed(true);
                 participant.setStatus(ParticipantStatus.COMPLETED);
                 participantRepository.save(participant);
+
+                // Trigar conquistas de conclusão de desafios
+                try {
+                    long completedChallenges = participantRepository.countByUserIdAndStatus(
+                        user.getId(), ParticipantStatus.COMPLETED
+                    );
+                    achievementService.updateProgress(user.getId(), "CHALLENGES_COMPLETED_5", (int) completedChallenges);
+                } catch (Exception e) {
+                    // Log error but don't fail reward distribution
+                }
             }
         }
     }

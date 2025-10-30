@@ -90,6 +90,8 @@ public class SubscriptionService {
         return mapToPaymentResponse(payment);
     }
 
+
+    @Transactional(readOnly = true)
     public List<SubscriptionResponse> getUserSubscriptions(String userId) {
         List<Subscription> subscriptions = subscriptionRepository.findByUserId(userId);
         return subscriptions.stream()
@@ -97,6 +99,8 @@ public class SubscriptionService {
             .collect(Collectors.toList());
     }
 
+
+    @Transactional(readOnly = true)
     public SubscriptionResponse getActiveSubscription(String userId) {
         Subscription subscription = subscriptionRepository
             .findByUserIdAndStatus(userId, SubscriptionStatus.ACTIVE)
@@ -170,6 +174,8 @@ public class SubscriptionService {
             .collect(Collectors.toList());
     }
 
+
+    @Transactional(readOnly = true)
     public PaymentResponse getPayment(String userId, String paymentId) {
         Payment payment = paymentRepository.findById(paymentId)
             .orElseThrow(() -> new ResourceNotFoundException("Pagamento não encontrado"));

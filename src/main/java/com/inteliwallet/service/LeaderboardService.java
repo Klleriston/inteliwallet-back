@@ -77,8 +77,6 @@ public class LeaderboardService {
 
     @Transactional(readOnly = true)
     public List<LeaderboardResponse> getFriendsLeaderboard(String currentUserId) {
-        // TODO: Implementar quando houver sistema de amizades completo
-        // Por enquanto, retorna apenas o usuário atual
         List<LeaderboardResponse> leaderboard = new ArrayList<>();
 
         User currentUser = userRepository.findById(currentUserId).orElse(null);
