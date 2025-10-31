@@ -64,9 +64,19 @@ public class SubscriptionController {
         return ResponseEntity.ok(subscriptionService.getPayment(userId, paymentId));
     }
 
+    @GetMapping("/webhook")
+    public ResponseEntity<Map<String, String>> testWebhook() {
+        log.info("Webhook GET endpoint acessado - teste do Mercado Pago");
+        Map<String, String> response = new java.util.HashMap<>();
+        response.put("status", "ok");
+        response.put("message", "Webhook endpoint está acessível");
+        response.put("timestamp", java.time.LocalDateTime.now().toString());
+        return ResponseEntity.ok(response);
+    }
+
     @PostMapping("/webhook")
     public ResponseEntity<Map<String, String>> handleWebhook(
-        @RequestBody Map<String, Object> payload,
+        @RequestBody(required = false) Map<String, Object> payload,
         @RequestParam(required = false) String type,
         @RequestParam(required = false) String id
     ) {
