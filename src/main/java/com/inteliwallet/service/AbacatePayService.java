@@ -1,4 +1,4 @@
-package com.inteliwallet.service;
+/*package com.inteliwallet.service;
 
 import com.inteliwallet.dto.external.AbacatePayBillingRequest;
 import com.inteliwallet.dto.external.AbacatePayBillingResponse;
@@ -115,4 +115,4 @@ public class AbacatePayService {
             throw new RuntimeException("Erro ao consultar pagamento", e);
         }
     }
-}
+}*/

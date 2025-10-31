@@ -64,35 +64,64 @@ public class SubscriptionController {
         return ResponseEntity.ok(subscriptionService.getPayment(userId, paymentId));
     }
 
-    @GetMapping("/webhook/test")
-    public ResponseEntity<Map<String, String>> testWebhook() {
-        log.info("Endpoint de teste do webhook acessado");
-        Map<String, String> response = new java.util.HashMap<>();
-        response.put("status", "ok");
-        response.put("message", "Webhook endpoint está acessível");
-        response.put("timestamp", java.time.LocalDateTime.now().toString());
-        return ResponseEntity.ok(response);
-    }
-
     @PostMapping("/webhook")
-    public ResponseEntity<Void> handleWebhook(@RequestBody Map<String, Object> payload) {
-        log.info("Webhook recebido do AbacatePay: {}", payload);
+    public ResponseEntity<Map<String, String>> handleWebhook(
+        @RequestBody Map<String, Object> payload,
+        @RequestParam(required = false) String type,
+        @RequestParam(required = false) String id
+    ) {
+        log.info("Webhook recebido do Mercado Pago - Type: {}, ID: {}, Payload: {}", type, id, payload);
 
-        String paymentId = (String) payload.get("id");
-        if (paymentId == null) {
-            paymentId = (String) payload.get("paymentId");
+        try {
+            if ("payment".equals(type) && id != null) {
+                log.info("Processando notificação de pagamento: {}", id);
+
+                String preferenceId = null;
+                String status = null;
+
+                if (payload.containsKey("data")) {
+                    Map<String, Object> data = (Map<String, Object>) payload.get("data");
+                    if (data != null && data.containsKey("id")) {
+                        String paymentId = data.get("id").toString();
+                        log.info("Payment ID extraído do data: {}", paymentId);
+                    }
+                }
+
+                if (payload.containsKey("additional_info")) {
+                    Map<String, Object> additionalInfo = (Map<String, Object>) payload.get("additional_info");
+                    if (additionalInfo != null && additionalInfo.containsKey("external_reference")) {
+                        preferenceId = additionalInfo.get("external_reference").toString();
+                    }
+                }
+
+                if (payload.containsKey("external_reference")) {
+                    preferenceId = payload.get("external_reference").toString();
+                }
+
+                if (payload.containsKey("status")) {
+                    status = payload.get("status").toString();
+                }
+
+                if (preferenceId != null && status != null) {
+                    log.info("Processando webhook - Preference ID: {}, Status: {}", preferenceId, status);
+                    subscriptionService.processPaymentWebhook(preferenceId, status.toUpperCase());
+                } else {
+                    log.warn("Webhook sem preferenceId ou status. Ignorando...");
+                }
+            } else {
+                log.info("Tipo de notificação não processado: {}", type);
+            }
+
+            Map<String, String> response = new java.util.HashMap<>();
+            response.put("status", "ok");
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            log.error("Erro ao processar webhook do Mercado Pago", e);
+            Map<String, String> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("status", "error");
+            errorResponse.put("message", e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
         }
-
-        String status = (String) payload.get("status");
-
-        log.info("Processando pagamento - ID: {}, Status: {}", paymentId, status);
-
-        if (paymentId == null || status == null) {
-            log.error("Webhook inválido - paymentId ou status ausente. Payload: {}", payload);
-            return ResponseEntity.badRequest().build();
-        }
-
-        subscriptionService.processPaymentWebhook(paymentId, status);
-        return ResponseEntity.ok().build();
     }
 }

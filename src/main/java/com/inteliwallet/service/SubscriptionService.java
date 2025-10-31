@@ -1,6 +1,5 @@
 package com.inteliwallet.service;
 
-import com.inteliwallet.dto.external.AbacatePayBillingResponse;
 import com.inteliwallet.dto.request.CreateSubscriptionRequest;
 import com.inteliwallet.dto.response.PaymentResponse;
 import com.inteliwallet.dto.response.SubscriptionResponse;
@@ -13,12 +12,14 @@ import com.inteliwallet.exception.ResourceNotFoundException;
 import com.inteliwallet.repository.PaymentRepository;
 import com.inteliwallet.repository.SubscriptionRepository;
 import com.inteliwallet.repository.UserRepository;
+import com.mercadopago.resources.preference.Preference;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +31,7 @@ public class SubscriptionService {
     private final SubscriptionRepository subscriptionRepository;
     private final PaymentRepository paymentRepository;
     private final UserRepository userRepository;
-    private final AbacatePayService abacatePayService;
+    private final MercadoPagoService mercadoPagoService;
 
     @Transactional
     public PaymentResponse createSubscription(String userId, CreateSubscriptionRequest request) {
@@ -58,17 +59,17 @@ public class SubscriptionService {
 
         BigDecimal amount = BigDecimal.valueOf(request.getPlan().getMonthlyPrice());
 
-        AbacatePayBillingResponse billingResponse = abacatePayService.createBilling(
-            amount,
-            user.getEmail(),
-            user.getUsername(),
-            null,
-            "Assinatura " + request.getPlan().getDisplayName()
-        );
+        String title = "Assinatura " + request.getPlan().getDisplayName();
+        String description = "Plano " + request.getPlan().getDisplayName() + " - InteliWallet";
 
-        if (billingResponse.getError() != null) {
-            throw new RuntimeException("Erro ao criar pagamento: " + billingResponse.getError());
-        }
+        Preference preference = mercadoPagoService.createPaymentPreference(
+            amount,
+            title,
+            description,
+            subscription.getId(),
+            user.getEmail(),
+            user.getUsername()
+        );
 
         Payment payment = new Payment();
         payment.setUser(user);
@@ -76,15 +77,15 @@ public class SubscriptionService {
         payment.setAmount(amount);
         payment.setStatus(PaymentStatus.PENDING);
         payment.setPaymentMethod(PaymentMethod.PIX);
-        payment.setExternalPaymentId(billingResponse.getData().getId());
-        payment.setPaymentUrl(billingResponse.getData().getUrl());
+        payment.setExternalPaymentId(preference.getId());
+        payment.setPaymentUrl(preference.getInitPoint());
 
-        if (billingResponse.getData().getPix() != null) {
-            payment.setPixCode(billingResponse.getData().getPix().getPixKey());
-            payment.setPixQrCode(billingResponse.getData().getPix().getQrCodeBase64());
+        if (preference.getDateOfExpiration() != null) {
+            payment.setExpiresAt(preference.getDateOfExpiration()
+                .atZoneSameInstant(ZoneId.systemDefault())
+                .toLocalDateTime());
         }
 
-        payment.setExpiresAt(billingResponse.getData().getExpiresAt());
         payment = paymentRepository.save(payment);
 
         return mapToPaymentResponse(payment);

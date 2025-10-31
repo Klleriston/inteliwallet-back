@@ -21,6 +21,7 @@ public class UserService {
     private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
 
+    @Transactional(readOnly = true)
     public UserResponse getProfile(String userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));

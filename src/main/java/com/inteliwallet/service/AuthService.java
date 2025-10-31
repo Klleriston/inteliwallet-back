@@ -83,6 +83,7 @@ public class AuthService {
         }
     }
 
+    @Transactional(readOnly = true)
     public UserResponse getMe(String userId) {
         User user = userRepository.findById(userId)
             .orElseThrow(() -> new BadRequestException("Usuário não encontrado"));

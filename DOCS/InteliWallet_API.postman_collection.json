@@ -1,9 +1,10 @@
 {
   "info": {
-    "name": "InteliWallet API",
-    "description": "Collection completa da API InteliWallet - Sistema de Carteira Financeira Gamificada",
+    "name": "InteliWallet API - Complete",
+    "description": "Collection completa da API InteliWallet - Sistema de Carteira Financeira Gamificada com integração Mercado Pago",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "_exporter_id": "inteliwallet"
+    "_exporter_id": "inteliwallet",
+    "version": "2.0.0"
   },
   "auth": {
     "type": "bearer",
@@ -18,7 +19,7 @@
   "variable": [
     {
       "key": "base_url",
-      "value": "http://localhost:3001/api",
+      "value": "http://localhost:8080/api",
       "type": "string"
     },
     {
@@ -28,6 +29,41 @@
     },
     {
       "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "transaction_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "goal_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "friend_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "invite_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "subscription_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "payment_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "challenge_id",
       "value": "",
       "type": "string"
     }
@@ -74,8 +110,7 @@
               "path": ["auth", "register"]
             },
             "description": "Registra um novo usuário no sistema"
-          },
-          "response": []
+          }
         },
         {
           "name": "Login",
@@ -115,8 +150,7 @@
               "path": ["auth", "login"]
             },
             "description": "Autentica um usuário e retorna JWT token"
-          },
-          "response": []
+          }
         },
         {
           "name": "Get Me",
@@ -129,8 +163,7 @@
               "path": ["auth", "me"]
             },
             "description": "Retorna dados do usuário autenticado"
-          },
-          "response": []
+          }
         },
         {
           "name": "Logout",
@@ -143,8 +176,7 @@
               "path": ["auth", "logout"]
             },
             "description": "Logout (stateless - token removido no client)"
-          },
-          "response": []
+          }
         }
       ]
     },
@@ -162,8 +194,7 @@
               "path": ["users", "profile"]
             },
             "description": "Retorna perfil do usuário autenticado"
-          },
-          "response": []
+          }
         },
         {
           "name": "Update Profile",
@@ -184,9 +215,8 @@
               "host": ["{{base_url}}"],
               "path": ["users", "profile"]
             },
-            "description": "Atualiza perfil do usuário (todos os campos são opcionais)"
-          },
-          "response": []
+            "description": "Atualiza perfil do usuário"
+          }
         },
         {
           "name": "Delete Account",
@@ -198,9 +228,8 @@
               "host": ["{{base_url}}"],
               "path": ["users", "profile"]
             },
-            "description": "Deleta conta do usuário (cascade delete)"
-          },
-          "response": []
+            "description": "Deleta conta do usuário"
+          }
         }
       ]
     },
@@ -218,8 +247,7 @@
               "path": ["transactions"]
             },
             "description": "Lista todas as transações do usuário"
-          },
-          "response": []
+          }
         },
         {
           "name": "Get Transaction",
@@ -227,19 +255,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/transactions/:id",
+              "raw": "{{base_url}}/transactions/{{transaction_id}}",
               "host": ["{{base_url}}"],
-              "path": ["transactions", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{transaction_id}}"
-                }
-              ]
+              "path": ["transactions", "{{transaction_id}}"]
             },
             "description": "Retorna uma transação específica"
-          },
-          "response": []
+          }
         },
         {
           "name": "Create Transaction (Income)",
@@ -248,7 +269,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
                   "    var jsonData = pm.response.json();",
                   "    pm.collectionVariables.set(\"transaction_id\", jsonData.id);",
                   "}"
@@ -266,7 +287,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"income\",\n  \"amount\": 5000.00,\n  \"title\": \"Salário\",\n  \"category\": \"Trabalho\",\n  \"date\": \"2025-10-24T15:00:00.000Z\"\n}"
+              "raw": "{\n  \"type\": \"income\",\n  \"amount\": 5000.00,\n  \"title\": \"Salário\",\n  \"category\": \"Trabalho\",\n  \"date\": \"2025-10-31T15:00:00.000Z\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/transactions",
@@ -274,8 +295,7 @@
               "path": ["transactions"]
             },
             "description": "Cria uma transação de entrada (receita)"
-          },
-          "response": []
+          }
         },
         {
           "name": "Create Transaction (Expense)",
@@ -289,7 +309,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"type\": \"expense\",\n  \"amount\": 150.00,\n  \"title\": \"Compras no mercado\",\n  \"category\": \"Alimentação\",\n  \"date\": \"2025-10-24T18:30:00.000Z\"\n}"
+              "raw": "{\n  \"type\": \"expense\",\n  \"amount\": 150.00,\n  \"title\": \"Compras no mercado\",\n  \"category\": \"Alimentação\",\n  \"date\": \"2025-10-31T18:30:00.000Z\"\n}"
             },
             "url": {
               "raw": "{{base_url}}/transactions",
@@ -297,8 +317,7 @@
               "path": ["transactions"]
             },
             "description": "Cria uma transação de saída (despesa)"
-          },
-          "response": []
+          }
         },
         {
           "name": "Update Transaction",
@@ -315,19 +334,12 @@
               "raw": "{\n  \"title\": \"Compras no mercado (atualizado)\",\n  \"amount\": 175.50,\n  \"category\": \"Alimentação\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/transactions/:id",
+              "raw": "{{base_url}}/transactions/{{transaction_id}}",
               "host": ["{{base_url}}"],
-              "path": ["transactions", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{transaction_id}}"
-                }
-              ]
+              "path": ["transactions", "{{transaction_id}}"]
             },
             "description": "Atualiza uma transação existente"
-          },
-          "response": []
+          }
         },
         {
           "name": "Delete Transaction",
@@ -335,19 +347,12 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/transactions/:id",
+              "raw": "{{base_url}}/transactions/{{transaction_id}}",
               "host": ["{{base_url}}"],
-              "path": ["transactions", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{transaction_id}}"
-                }
-              ]
+              "path": ["transactions", "{{transaction_id}}"]
             },
             "description": "Deleta uma transação"
-          },
-          "response": []
+          }
         }
       ]
     },
@@ -365,8 +370,7 @@
               "path": ["goals"]
             },
             "description": "Lista todas as metas do usuário"
-          },
-          "response": []
+          }
         },
         {
           "name": "Get Goal",
@@ -374,19 +378,12 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/goals/:id",
+              "raw": "{{base_url}}/goals/{{goal_id}}",
               "host": ["{{base_url}}"],
-              "path": ["goals", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{goal_id}}"
-                }
-              ]
+              "path": ["goals", "{{goal_id}}"]
             },
             "description": "Retorna uma meta específica"
-          },
-          "response": []
+          }
         },
         {
           "name": "Create Goal",
@@ -395,7 +392,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
                   "    var jsonData = pm.response.json();",
                   "    pm.collectionVariables.set(\"goal_id\", jsonData.id);",
                   "}"
@@ -421,8 +418,7 @@
               "path": ["goals"]
             },
             "description": "Cria uma nova meta"
-          },
-          "response": []
+          }
         },
         {
           "name": "Update Goal",
@@ -439,19 +435,12 @@
               "raw": "{\n  \"title\": \"Viagem para Europa (Verão 2026)\",\n  \"targetAmount\": 18000.00,\n  \"deadline\": \"2026-07-15T23:59:59.000Z\"\n}"
             },
             "url": {
-              "raw": "{{base_url}}/goals/:id",
+              "raw": "{{base_url}}/goals/{{goal_id}}",
               "host": ["{{base_url}}"],
-              "path": ["goals", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{goal_id}}"
-                }
-              ]
+              "path": ["goals", "{{goal_id}}"]
             },
             "description": "Atualiza uma meta existente"
-          },
-          "response": []
+          }
         },
         {
           "name": "Contribute to Goal",
@@ -468,19 +457,12 @@
               "raw": "{\n  \"amount\": 500.00\n}"
             },
             "url": {
-              "raw": "{{base_url}}/goals/:id/contribute",
+              "raw": "{{base_url}}/goals/{{goal_id}}/contribute",
               "host": ["{{base_url}}"],
-              "path": ["goals", ":id", "contribute"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{goal_id}}"
-                }
-              ]
+              "path": ["goals", "{{goal_id}}", "contribute"]
             },
             "description": "Adiciona uma contribuição para a meta"
-          },
-          "response": []
+          }
         },
         {
           "name": "Delete Goal",
@@ -488,19 +470,12 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/goals/:id",
+              "raw": "{{base_url}}/goals/{{goal_id}}",
               "host": ["{{base_url}}"],
-              "path": ["goals", ":id"],
-              "variable": [
-                {
-                  "key": "id",
-                  "value": "{{goal_id}}"
-                }
-              ]
+              "path": ["goals", "{{goal_id}}"]
             },
             "description": "Deleta uma meta"
-          },
-          "response": []
+          }
         }
       ]
     },
@@ -518,8 +493,7 @@
               "path": ["friends"]
             },
             "description": "Lista todos os amigos do usuário"
-          },
-          "response": []
+          }
         },
         {
           "name": "Add Friend (Send Invite)",
@@ -528,7 +502,7 @@
               "listen": "test",
               "script": {
                 "exec": [
-                  "if (pm.response.code === 200) {",
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
                   "    var jsonData = pm.response.json();",
                   "    pm.collectionVariables.set(\"invite_id\", jsonData.id);",
                   "}"
@@ -553,9 +527,8 @@
               "host": ["{{base_url}}"],
               "path": ["friends", "add"]
             },
-            "description": "Envia convite de amizade para outro usuário"
-          },
-          "response": []
+            "description": "Envia convite de amizade"
+          }
         },
         {
           "name": "Remove Friend",
@@ -563,19 +536,12 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/friends/:friendId",
+              "raw": "{{base_url}}/friends/{{friend_id}}",
               "host": ["{{base_url}}"],
-              "path": ["friends", ":friendId"],
-              "variable": [
-                {
-                  "key": "friendId",
-                  "value": "{{friend_id}}"
-                }
-              ]
+              "path": ["friends", "{{friend_id}}"]
             },
-            "description": "Remove um amigo (deleta amizade bidirecional)"
-          },
-          "response": []
+            "description": "Remove um amigo"
+          }
         },
         {
           "name": "List Friend Invites",
@@ -587,9 +553,8 @@
               "host": ["{{base_url}}"],
               "path": ["friends", "invites"]
             },
-            "description": "Lista convites de amizade recebidos (pendentes)"
-          },
-          "response": []
+            "description": "Lista convites de amizade recebidos"
+          }
         },
         {
           "name": "Accept Friend Invite",
@@ -597,19 +562,12 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/friends/invites/:inviteId/accept",
+              "raw": "{{base_url}}/friends/invites/{{invite_id}}/accept",
               "host": ["{{base_url}}"],
-              "path": ["friends", "invites", ":inviteId", "accept"],
-              "variable": [
-                {
-                  "key": "inviteId",
-                  "value": "{{invite_id}}"
-                }
-              ]
+              "path": ["friends", "invites", "{{invite_id}}", "accept"]
             },
             "description": "Aceita convite de amizade"
-          },
-          "response": []
+          }
         },
         {
           "name": "Decline Friend Invite",
@@ -617,19 +575,447 @@
             "method": "POST",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/friends/invites/:inviteId/decline",
+              "raw": "{{base_url}}/friends/invites/{{invite_id}}/decline",
               "host": ["{{base_url}}"],
-              "path": ["friends", "invites", ":inviteId", "decline"],
-              "variable": [
+              "path": ["friends", "invites", "{{invite_id}}", "decline"]
+            },
+            "description": "Recusa convite de amizade"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Subscriptions & Payments",
+      "description": "Gerenciamento de assinaturas e pagamentos via Mercado Pago",
+      "item": [
+        {
+          "name": "Create Subscription",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"payment_id\", jsonData.id);",
+                  "    pm.collectionVariables.set(\"subscription_id\", jsonData.subscriptionId);",
+                  "    console.log(\"Payment URL: \" + jsonData.paymentUrl);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"plan\": \"PREMIUM\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/subscriptions",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions"]
+            },
+            "description": "Cria uma nova assinatura e retorna link de pagamento do Mercado Pago. Planos: FREE, PREMIUM, BUSINESS"
+          }
+        },
+        {
+          "name": "List User Subscriptions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions"]
+            },
+            "description": "Lista todas as assinaturas do usuário"
+          }
+        },
+        {
+          "name": "Get Active Subscription",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/active",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "active"]
+            },
+            "description": "Retorna a assinatura ativa do usuário"
+          }
+        },
+        {
+          "name": "Cancel Subscription",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/{{subscription_id}}/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "{{subscription_id}}", "cancel"]
+            },
+            "description": "Cancela uma assinatura ativa"
+          }
+        },
+        {
+          "name": "List User Payments",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/payments",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "payments"]
+            },
+            "description": "Lista todos os pagamentos do usuário"
+          }
+        },
+        {
+          "name": "Get Payment Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/subscriptions/payments/{{payment_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "payments", "{{payment_id}}"]
+            },
+            "description": "Retorna detalhes de um pagamento específico"
+          }
+        },
+        {
+          "name": "Simulate Webhook (Payment Approved)",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"action\": \"payment.updated\",\n  \"data\": {\n    \"id\": \"123456789\"\n  },\n  \"external_reference\": \"{{subscription_id}}\",\n  \"status\": \"approved\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/subscriptions/webhook?type=payment&id=123456789",
+              "host": ["{{base_url}}"],
+              "path": ["subscriptions", "webhook"],
+              "query": [
                 {
-                  "key": "inviteId",
-                  "value": "{{invite_id}}"
+                  "key": "type",
+                  "value": "payment"
+                },
+                {
+                  "key": "id",
+                  "value": "123456789"
                 }
               ]
             },
-            "description": "Recusa convite de amizade"
-          },
-          "response": []
+            "description": "Simula recebimento de webhook do Mercado Pago com pagamento aprovado"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Achievements",
+      "description": "Sistema de conquistas e badges",
+      "item": [
+        {
+          "name": "Get All Achievements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements",
+              "host": ["{{base_url}}"],
+              "path": ["achievements"]
+            },
+            "description": "Lista todas as conquistas disponíveis com progresso do usuário"
+          }
+        },
+        {
+          "name": "Get Unlocked Achievements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/unlocked",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "unlocked"]
+            },
+            "description": "Lista conquistas desbloqueadas pelo usuário"
+          }
+        },
+        {
+          "name": "Get Achievements by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/category/:category",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "category", ":category"],
+              "variable": [
+                {
+                  "key": "category",
+                  "value": "SAVINGS"
+                }
+              ]
+            },
+            "description": "Lista conquistas de uma categoria específica"
+          }
+        },
+        {
+          "name": "Initialize User Achievements",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/achievements/initialize",
+              "host": ["{{base_url}}"],
+              "path": ["achievements", "initialize"]
+            },
+            "description": "Inicializa conquistas para o usuário"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Challenges",
+      "description": "Desafios colaborativos de metas",
+      "item": [
+        {
+          "name": "Create Challenge",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"challenge_id\", jsonData.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Desafio de Economia Mensal\",\n  \"description\": \"Vamos economizar juntos para a viagem!\",\n  \"targetAmount\": 10000.00,\n  \"category\": \"Viagem\",\n  \"deadline\": \"2026-01-31T23:59:59.000Z\",\n  \"isPublic\": true,\n  \"maxParticipants\": 10\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/challenges",
+              "host": ["{{base_url}}"],
+              "path": ["challenges"]
+            },
+            "description": "Cria um novo desafio colaborativo"
+          }
+        },
+        {
+          "name": "List My Challenges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges",
+              "host": ["{{base_url}}"],
+              "path": ["challenges"]
+            },
+            "description": "Lista todos os desafios do usuário (criados ou participando)"
+          }
+        },
+        {
+          "name": "List Active Challenges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges/active",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "active"]
+            },
+            "description": "Lista desafios ativos do usuário"
+          }
+        },
+        {
+          "name": "List Available Challenges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges/available",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "available"]
+            },
+            "description": "Lista desafios públicos disponíveis para participar"
+          }
+        },
+        {
+          "name": "Get Challenge Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges/{{challenge_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "{{challenge_id}}"]
+            },
+            "description": "Retorna detalhes de um desafio específico"
+          }
+        },
+        {
+          "name": "Update Challenge",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Desafio de Economia Mensal (Atualizado)\",\n  \"description\": \"Meta aumentada para incluir mais pessoas!\",\n  \"targetAmount\": 15000.00\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/challenges/{{challenge_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "{{challenge_id}}"]
+            },
+            "description": "Atualiza um desafio (apenas o criador)"
+          }
+        },
+        {
+          "name": "Delete Challenge",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges/{{challenge_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "{{challenge_id}}"]
+            },
+            "description": "Deleta um desafio (apenas o criador)"
+          }
+        },
+        {
+          "name": "Join Challenge",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges/{{challenge_id}}/join",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "{{challenge_id}}", "join"]
+            },
+            "description": "Participa de um desafio"
+          }
+        },
+        {
+          "name": "Leave Challenge",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges/{{challenge_id}}/leave",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "{{challenge_id}}", "leave"]
+            },
+            "description": "Sai de um desafio"
+          }
+        },
+        {
+          "name": "Contribute to Challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 250.00\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/challenges/{{challenge_id}}/contribute",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "{{challenge_id}}", "contribute"]
+            },
+            "description": "Adiciona contribuição ao desafio"
+          }
+        },
+        {
+          "name": "List Challenge Participants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/challenges/{{challenge_id}}/participants",
+              "host": ["{{base_url}}"],
+              "path": ["challenges", "{{challenge_id}}", "participants"]
+            },
+            "description": "Lista participantes de um desafio"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leaderboard",
+      "description": "Sistema de ranking e competição",
+      "item": [
+        {
+          "name": "Get Global Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leaderboard/global?limit=50",
+              "host": ["{{base_url}}"],
+              "path": ["leaderboard", "global"],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "50",
+                  "description": "Número máximo de usuários no ranking"
+                }
+              ]
+            },
+            "description": "Retorna ranking global de todos os usuários"
+          }
+        },
+        {
+          "name": "Get Friends Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/leaderboard/friends",
+              "host": ["{{base_url}}"],
+              "path": ["leaderboard", "friends"]
+            },
+            "description": "Retorna ranking apenas dos amigos do usuário"
+          }
         }
       ]
     }
