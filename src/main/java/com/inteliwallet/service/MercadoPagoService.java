@@ -71,6 +71,7 @@ public class MercadoPagoService {
             PreferenceRequest.PreferenceRequestBuilder requestBuilder = PreferenceRequest.builder()
                 .items(Collections.singletonList(itemRequest))
                 .backUrls(backUrls)
+                .autoReturn("approved")  // Redireciona automaticamente após pagamento aprovado
                 .notificationUrl(notificationUrl)
                 .externalReference(externalReference)
                 .statementDescriptor("InteliWallet");
