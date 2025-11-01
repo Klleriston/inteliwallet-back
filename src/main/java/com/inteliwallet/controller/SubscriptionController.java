@@ -78,48 +78,48 @@ public class SubscriptionController {
     public ResponseEntity<Map<String, String>> handleWebhook(
         @RequestBody(required = false) Map<String, Object> payload,
         @RequestParam(required = false) String type,
-        @RequestParam(required = false) String id
+        @RequestParam(required = false) String id,
+        @RequestParam(required = false) String topic,
+        @RequestParam(value = "data.id", required = false) String dataId
     ) {
-        log.info("Webhook recebido do Mercado Pago - Type: {}, ID: {}, Payload: {}", type, id, payload);
+        log.info("Webhook recebido do Mercado Pago - Type: {}, ID: {}, Topic: {}, Data.ID: {}, Payload: {}",
+            type, id, topic, dataId, payload);
 
         try {
-            if ("payment".equals(type) && id != null) {
-                log.info("Processando notificação de pagamento: {}", id);
+            // Extrai o payment ID de múltiplas fontes possíveis
+            String paymentId = null;
 
-                String preferenceId = null;
-                String status = null;
+            // Formato 1: Query param data.id
+            if (dataId != null && !dataId.isEmpty()) {
+                paymentId = dataId;
+                log.info("Payment ID extraído de data.id query param: {}", paymentId);
+            }
 
-                if (payload.containsKey("data")) {
-                    Map<String, Object> data = (Map<String, Object>) payload.get("data");
-                    if (data != null && data.containsKey("id")) {
-                        String paymentId = data.get("id").toString();
-                        log.info("Payment ID extraído do data: {}", paymentId);
-                    }
+            // Formato 2: Query param id (usado com topic=payment)
+            if (paymentId == null && id != null && !id.isEmpty() && "payment".equals(topic)) {
+                paymentId = id;
+                log.info("Payment ID extraído de id query param: {}", paymentId);
+            }
+
+            // Formato 3: Body payload (notificação v1)
+            if (paymentId == null && payload != null && payload.containsKey("data")) {
+                Map<String, Object> data = (Map<String, Object>) payload.get("data");
+                if (data != null && data.containsKey("id")) {
+                    paymentId = data.get("id").toString();
+                    log.info("Payment ID extraído do payload body: {}", paymentId);
                 }
+            }
 
-                if (payload.containsKey("additional_info")) {
-                    Map<String, Object> additionalInfo = (Map<String, Object>) payload.get("additional_info");
-                    if (additionalInfo != null && additionalInfo.containsKey("external_reference")) {
-                        preferenceId = additionalInfo.get("external_reference").toString();
-                    }
-                }
+            // Verifica se é uma notificação de pagamento
+            boolean isPaymentNotification = "payment".equals(type) ||
+                                           "payment".equals(topic) ||
+                                           (payload != null && "payment".equals(payload.get("type")));
 
-                if (payload.containsKey("external_reference")) {
-                    preferenceId = payload.get("external_reference").toString();
-                }
-
-                if (payload.containsKey("status")) {
-                    status = payload.get("status").toString();
-                }
-
-                if (preferenceId != null && status != null) {
-                    log.info("Processando webhook - Preference ID: {}, Status: {}", preferenceId, status);
-                    subscriptionService.processPaymentWebhook(preferenceId, status.toUpperCase());
-                } else {
-                    log.warn("Webhook sem preferenceId ou status. Ignorando...");
-                }
+            if (isPaymentNotification && paymentId != null && !paymentId.isEmpty()) {
+                log.info("Processando notificação de pagamento. Payment ID: {}", paymentId);
+                subscriptionService.processPaymentWebhook(paymentId);
             } else {
-                log.info("Tipo de notificação não processado: {}", type);
+                log.info("Notificação ignorada - Type: {}, Topic: {}, PaymentID: {}", type, topic, paymentId);
             }
 
             Map<String, String> response = new java.util.HashMap<>();

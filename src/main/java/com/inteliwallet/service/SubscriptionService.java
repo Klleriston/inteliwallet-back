@@ -127,44 +127,83 @@ public class SubscriptionService {
     }
 
     @Transactional
-    public void processPaymentWebhook(String paymentId, String status) {
-        log.info("Processando webhook - Buscando pagamento com externalPaymentId: {}", paymentId);
+    public void processPaymentWebhook(String mercadoPagoPaymentId) {
+        log.info("Processando webhook - Buscando pagamento no Mercado Pago. ID: {}", mercadoPagoPaymentId);
 
-        Payment payment = paymentRepository.findByExternalPaymentId(paymentId)
+        // Busca os dados do pagamento na API do Mercado Pago
+        com.mercadopago.resources.payment.Payment mpPayment;
+        try {
+            mpPayment = mercadoPagoService.getPayment(Long.parseLong(mercadoPagoPaymentId));
+            log.info("Pagamento encontrado no Mercado Pago. Status: {}, External Reference: {}",
+                mpPayment.getStatus(), mpPayment.getExternalReference());
+        } catch (Exception e) {
+            log.error("Erro ao buscar pagamento no Mercado Pago. ID: {}", mercadoPagoPaymentId, e);
+            throw new RuntimeException("Erro ao buscar pagamento no Mercado Pago", e);
+        }
+
+        // Busca o pagamento local usando o external_reference (que é o subscription ID)
+        String externalReference = mpPayment.getExternalReference();
+        if (externalReference == null || externalReference.isEmpty()) {
+            log.error("Pagamento do Mercado Pago sem external_reference. Payment ID: {}", mercadoPagoPaymentId);
+            throw new ResourceNotFoundException("Pagamento sem referência externa");
+        }
+
+        // Busca a subscription pelo ID (que foi salvo como external_reference)
+        Subscription subscription = subscriptionRepository.findById(externalReference)
             .orElseThrow(() -> {
-                log.error("Pagamento não encontrado com externalPaymentId: {}", paymentId);
+                log.error("Assinatura não encontrada. External Reference: {}", externalReference);
+                return new ResourceNotFoundException("Assinatura não encontrada");
+            });
+
+        // Busca o pagamento associado à subscription
+        Payment payment = paymentRepository.findBySubscriptionId(subscription.getId())
+            .stream()
+            .filter(p -> p.getStatus() != PaymentStatus.PAID) // Pega o primeiro não pago
+            .findFirst()
+            .orElseThrow(() -> {
+                log.error("Pagamento local não encontrado para subscription: {}", subscription.getId());
                 return new ResourceNotFoundException("Pagamento não encontrado");
             });
 
-        log.info("Pagamento encontrado: ID={}, Status atual={}, Novo status={}",
-            payment.getId(), payment.getStatus(), status);
+        // Atualiza com o payment ID do Mercado Pago se ainda não tiver
+        if (payment.getExternalPaymentId() == null || !payment.getExternalPaymentId().equals(mercadoPagoPaymentId)) {
+            payment.setExternalPaymentId(mercadoPagoPaymentId);
+            log.info("Payment ID do Mercado Pago atualizado: {}", mercadoPagoPaymentId);
+        }
 
-        if ("PAID".equalsIgnoreCase(status) || "paid".equalsIgnoreCase(status)) {
+        // Mapeia o status do Mercado Pago para status interno
+        String internalStatus = mercadoPagoService.mapMercadoPagoStatusToInternal(mpPayment.getStatus());
+        log.info("Pagamento encontrado: ID={}, Status atual={}, Status MP={}, Status interno={}",
+            payment.getId(), payment.getStatus(), mpPayment.getStatus(), internalStatus);
+
+        // Processa o pagamento baseado no status
+        if ("PAID".equals(internalStatus)) {
             payment.markAsPaid();
             paymentRepository.save(payment);
             log.info("Pagamento marcado como PAID: {}", payment.getId());
 
-            Subscription subscription = payment.getSubscription();
-            if (subscription != null) {
-                log.info("Ativando assinatura: {}", subscription.getId());
-                subscription.activate();
-                subscriptionRepository.save(subscription);
+            log.info("Ativando assinatura: {}", subscription.getId());
+            subscription.activate();
+            subscriptionRepository.save(subscription);
 
-                User user = subscription.getUser();
-                UserPlan oldPlan = user.getPlan();
-                user.setPlan(subscription.getPlan());
-                userRepository.save(user);
-                log.info("Plano do usuário {} atualizado de {} para {}",
-                    user.getId(), oldPlan, subscription.getPlan());
-            } else {
-                log.warn("Pagamento {} não possui assinatura associada", payment.getId());
-            }
-        } else if ("FAILED".equalsIgnoreCase(status) || "failed".equalsIgnoreCase(status)) {
+            User user = subscription.getUser();
+            UserPlan oldPlan = user.getPlan();
+            user.setPlan(subscription.getPlan());
+            userRepository.save(user);
+            log.info("Plano do usuário {} atualizado de {} para {} - INSTANTÂNEO",
+                user.getId(), oldPlan, subscription.getPlan());
+
+        } else if ("FAILED".equals(internalStatus)) {
             payment.markAsFailed();
             paymentRepository.save(payment);
             log.info("Pagamento marcado como FAILED: {}", payment.getId());
+
+            subscription.setStatus(SubscriptionStatus.CANCELLED);
+            subscriptionRepository.save(subscription);
+            log.info("Assinatura cancelada devido a pagamento falho: {}", subscription.getId());
+
         } else {
-            log.warn("Status desconhecido recebido no webhook: {}", status);
+            log.info("Pagamento com status pendente: {}. Aguardando confirmação.", internalStatus);
         }
     }
 
