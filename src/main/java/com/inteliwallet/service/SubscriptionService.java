@@ -198,7 +198,7 @@ public class SubscriptionService {
             paymentRepository.save(payment);
             log.info("Pagamento marcado como FAILED: {}", payment.getId());
 
-            subscription.setStatus(SubscriptionStatus.CANCELLED);
+            subscription.setStatus(SubscriptionStatus.CANCELED);
             subscriptionRepository.save(subscription);
             log.info("Assinatura cancelada devido a pagamento falho: {}", subscription.getId());
 
