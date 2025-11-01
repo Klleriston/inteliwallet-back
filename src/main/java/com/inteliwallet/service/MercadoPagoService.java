@@ -6,6 +6,8 @@ import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferencePayerRequest;
+import com.mercadopago.client.preference.PreferencePaymentMethodsRequest;
+import com.mercadopago.client.preference.PreferencePaymentTypeRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.exceptions.MPApiException;
 import com.mercadopago.exceptions.MPException;
@@ -17,7 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 @Slf4j
 @Service
@@ -68,10 +72,20 @@ public class MercadoPagoService {
                 .pending(failureUrl)
                 .build();
 
+            // Configura métodos de pagamento - habilita PIX e desabilita boleto
+            List<PreferencePaymentTypeRequest> excludedPaymentTypes = new ArrayList<>();
+            excludedPaymentTypes.add(PreferencePaymentTypeRequest.builder().id("ticket").build()); // Desabilita boleto
+
+            PreferencePaymentMethodsRequest paymentMethods = PreferencePaymentMethodsRequest.builder()
+                .excludedPaymentTypes(excludedPaymentTypes)
+                .installments(1)  // Apenas pagamento à vista
+                .build();
+
             PreferenceRequest.PreferenceRequestBuilder requestBuilder = PreferenceRequest.builder()
                 .items(Collections.singletonList(itemRequest))
                 .backUrls(backUrls)
                 .autoReturn("approved")  // Redireciona automaticamente após pagamento aprovado
+                .paymentMethods(paymentMethods)  // Configura métodos de pagamento
                 .notificationUrl(notificationUrl)
                 .externalReference(externalReference)
                 .statementDescriptor("InteliWallet");
