@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -27,7 +26,6 @@ public class AuthService {
     private final JwtTokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
     private final ModelMapper modelMapper;
-    private final StreakService streakService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
@@ -39,7 +37,7 @@ public class AuthService {
             throw new BadRequestException("Dado invalido");
         }
 
-        User user = new User();
+        var user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
@@ -48,33 +46,27 @@ public class AuthService {
         user.setLevel(1);
         user.setHasCompletedOnboarding(false);
 
-        user = userRepository.save(user);
+        var savedUser = userRepository.save(user);
 
-        String token = tokenProvider.generateToken(user.getId());
+        var token = tokenProvider.generateToken(savedUser.getId());
 
-        return new AuthResponse(token, mapToUserResponse(user));
+        return new AuthResponse(token, mapToUserResponse(savedUser));
     }
 
     @Transactional
     public AuthResponse login(LoginRequest request) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            var authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                     request.getEmail(),
                     request.getPassword()
                 )
             );
 
-            User user = userRepository.findByEmail(request.getEmail())
+            var user = userRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new BadRequestException("Credenciais inválidas"));
 
-            try {
-                streakService.recordDailyLogin(user.getId());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-
-            String token = tokenProvider.generateToken(user.getId());
+            var token = tokenProvider.generateToken(user.getId());
 
             return new AuthResponse(token, mapToUserResponse(user));
 
@@ -85,14 +77,14 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public UserResponse getMe(String userId) {
-        User user = userRepository.findById(userId)
+        var user = userRepository.findById(userId)
             .orElseThrow(() -> new BadRequestException("Usuário não encontrado"));
 
         return mapToUserResponse(user);
     }
 
     private UserResponse mapToUserResponse(User user) {
-        UserResponse response = modelMapper.map(user, UserResponse.class);
+        var response = modelMapper.map(user, UserResponse.class);
         if (response.getHasCompletedOnboarding() == null) {
             response.setHasCompletedOnboarding(false);
         }

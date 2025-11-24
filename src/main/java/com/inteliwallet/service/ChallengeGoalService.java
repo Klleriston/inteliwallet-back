@@ -18,7 +18,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,15 +26,14 @@ public class ChallengeGoalService {
     private final ChallengeGoalRepository challengeGoalRepository;
     private final ChallengeParticipantRepository participantRepository;
     private final UserRepository userRepository;
-    private final StreakService streakService;
     private final AchievementService achievementService;
 
     @Transactional
     public ChallengeGoalResponse createChallenge(String userId, CreateChallengeGoalRequest request) {
-        User creator = userRepository.findById(userId)
+        var creator = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
-        Long activeCount = challengeGoalRepository.countActiveCreatedChallengesByUserId(userId);
+        var activeCount = challengeGoalRepository.countActiveCreatedChallengesByUserId(userId);
         if (activeCount >= creator.getPlan().getMaxChallenges()) {
             throw new BadRequestException(
                 "Você atingiu o limite de desafios ativos do seu plano. " +
@@ -43,7 +41,7 @@ public class ChallengeGoalService {
             );
         }
 
-        ChallengeGoal challenge = new ChallengeGoal();
+        var challenge = new ChallengeGoal();
         challenge.setCreator(creator);
         challenge.setTitle(request.getTitle());
         challenge.setDescription(request.getDescription());
@@ -53,59 +51,63 @@ public class ChallengeGoalService {
         challenge.setMaxParticipants(request.getMaxParticipants());
         challenge.setRewardPoints(request.getRewardPoints() != null ? request.getRewardPoints() : 100);
 
-        challenge = challengeGoalRepository.save(challenge);
+        var savedChallenge = challengeGoalRepository.save(challenge);
 
-        ChallengeParticipant participant = new ChallengeParticipant();
-        participant.setChallengeGoal(challenge);
+        var participant = new ChallengeParticipant();
+        participant.setChallengeGoal(savedChallenge);
         participant.setUser(creator);
         participant.setIsCreator(true);
         participantRepository.save(participant);
 
+        updateChallengeCreationAchievements(userId);
+
+        return mapToChallengeResponse(savedChallenge);
+    }
+
+    private void updateChallengeCreationAchievements(String userId) {
         try {
-            long createdChallenges = challengeGoalRepository.countActiveCreatedChallengesByUserId(userId);
-            achievementService.updateProgress(userId, "CHALLENGES_CREATED_3", (int) createdChallenges);
+            var createdChallenges = challengeGoalRepository.countActiveCreatedChallengesByUserId(userId);
+            achievementService.updateProgress(userId, "CHALLENGES_CREATED_3", createdChallenges.intValue());
         } catch (Exception e) {
         }
-
-        return mapToChallengeResponse(challenge);
     }
 
     @Transactional(readOnly = true)
     public List<ChallengeGoalResponse> listMyChallenges(String userId) {
-        List<ChallengeGoal> challenges = challengeGoalRepository.findByParticipantUserId(userId);
+        var challenges = challengeGoalRepository.findByParticipantUserId(userId);
         return challenges.stream()
             .map(this::mapToChallengeResponse)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional(readOnly = true)
     public List<ChallengeGoalResponse> listActiveChallenges(String userId) {
-        List<ChallengeGoal> challenges = challengeGoalRepository.findByParticipantUserIdAndStatus(
+        var challenges = challengeGoalRepository.findByParticipantUserIdAndStatus(
             userId, ChallengeStatus.ACTIVE
         );
         return challenges.stream()
             .map(this::mapToChallengeResponse)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional(readOnly = true)
     public List<ChallengeGoalResponse> listAvailableChallenges() {
-        List<ChallengeGoal> challenges = challengeGoalRepository.findAvailableChallenges();
+        var challenges = challengeGoalRepository.findAvailableChallenges();
         return challenges.stream()
             .map(this::mapToChallengeResponse)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional(readOnly = true)
     public ChallengeGoalResponse getChallengeById(String challengeId) {
-        ChallengeGoal challenge = challengeGoalRepository.findById(challengeId)
+        var challenge = challengeGoalRepository.findById(challengeId)
             .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));
         return mapToChallengeResponse(challenge);
     }
 
     @Transactional
     public ChallengeGoalResponse updateChallenge(String userId, String challengeId, UpdateChallengeGoalRequest request) {
-        ChallengeGoal challenge = challengeGoalRepository.findById(challengeId)
+        var challenge = challengeGoalRepository.findById(challengeId)
             .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));
 
         if (!challenge.getCreator().getId().equals(userId)) {
@@ -124,13 +126,13 @@ public class ChallengeGoalService {
         if (request.getMaxParticipants() != null) challenge.setMaxParticipants(request.getMaxParticipants());
         if (request.getRewardPoints() != null) challenge.setRewardPoints(request.getRewardPoints());
 
-        challenge = challengeGoalRepository.save(challenge);
-        return mapToChallengeResponse(challenge);
+        var updatedChallenge = challengeGoalRepository.save(challenge);
+        return mapToChallengeResponse(updatedChallenge);
     }
 
     @Transactional
     public void deleteChallenge(String userId, String challengeId) {
-        ChallengeGoal challenge = challengeGoalRepository.findById(challengeId)
+        var challenge = challengeGoalRepository.findById(challengeId)
             .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));
 
         if (!challenge.getCreator().getId().equals(userId)) {
@@ -147,10 +149,10 @@ public class ChallengeGoalService {
 
     @Transactional
     public ChallengeParticipantResponse joinChallenge(String userId, String challengeId) {
-        User user = userRepository.findById(userId)
+        var user = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
-        ChallengeGoal challenge = challengeGoalRepository.findById(challengeId)
+        var challenge = challengeGoalRepository.findById(challengeId)
             .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));
 
         if (challenge.getStatus() != ChallengeStatus.ACTIVE) {
@@ -161,31 +163,34 @@ public class ChallengeGoalService {
             throw new BadRequestException("Você já participa deste desafio");
         }
 
-        Long participantCount = participantRepository.countActiveByChallengeGoalId(challengeId);
+        var participantCount = participantRepository.countActiveByChallengeGoalId(challengeId);
         if (challenge.getMaxParticipants() != null && participantCount >= challenge.getMaxParticipants()) {
             throw new BadRequestException("Este desafio já atingiu o máximo de participantes");
         }
 
-        ChallengeParticipant participant = new ChallengeParticipant();
+        var participant = new ChallengeParticipant();
         participant.setChallengeGoal(challenge);
         participant.setUser(user);
         participant.setIsCreator(false);
 
-        participant = participantRepository.save(participant);
+        var savedParticipant = participantRepository.save(participant);
 
+        updateFirstChallengeAchievement(userId);
+
+        return mapToParticipantResponse(savedParticipant, challenge.getTargetAmount());
+    }
+
+    private void updateFirstChallengeAchievement(String userId) {
         try {
-            long totalParticipations = participantRepository.countByUserId(userId);
-            achievementService.updateProgress(userId, "FIRST_CHALLENGE", (int) totalParticipations);
+            var totalParticipations = participantRepository.countByUserId(userId);
+            achievementService.updateProgress(userId, "FIRST_CHALLENGE", totalParticipations.intValue());
         } catch (Exception e) {
-            // Log error but don't fail join
         }
-
-        return mapToParticipantResponse(participant, challenge.getTargetAmount());
     }
 
     @Transactional
     public void leaveChallenge(String userId, String challengeId) {
-        ChallengeParticipant participant = participantRepository
+        var participant = participantRepository
             .findByChallengeGoalIdAndUserId(challengeId, userId)
             .orElseThrow(() -> new ResourceNotFoundException("Você não participa deste desafio"));
 
@@ -193,7 +198,7 @@ public class ChallengeGoalService {
             throw new BadRequestException("O criador não pode sair do desafio. Delete o desafio se necessário.");
         }
 
-        ChallengeGoal challenge = participant.getChallengeGoal();
+        var challenge = participant.getChallengeGoal();
         if (challenge.getStatus() != ChallengeStatus.ACTIVE) {
             throw new BadRequestException("Você só pode sair de desafios ativos");
         }
@@ -204,7 +209,7 @@ public class ChallengeGoalService {
 
     @Transactional
     public ChallengeGoalResponse contributeToChallenge(String userId, String challengeId, ContributeChallengeRequest request) {
-        ChallengeParticipant participant = participantRepository
+        var participant = participantRepository
             .findByChallengeGoalIdAndUserId(challengeId, userId)
             .orElseThrow(() -> new ResourceNotFoundException("Você não participa deste desafio"));
 
@@ -212,7 +217,7 @@ public class ChallengeGoalService {
             throw new BadRequestException("Você não está ativo neste desafio");
         }
 
-        ChallengeGoal challenge = participant.getChallengeGoal();
+        var challenge = participant.getChallengeGoal();
 
         if (challenge.getStatus() != ChallengeStatus.ACTIVE) {
             throw new BadRequestException("Este desafio não está mais ativo");
@@ -228,41 +233,35 @@ public class ChallengeGoalService {
         challenge.contribute(request.getAmount());
 
         participantRepository.save(participant);
-        challenge = challengeGoalRepository.save(challenge);
+        var updatedChallenge = challengeGoalRepository.save(challenge);
 
-        try {
-            streakService.recordChallengeContribution(participant.getId());
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (updatedChallenge.getStatus() == ChallengeStatus.COMPLETED) {
+            distributeRewards(updatedChallenge);
         }
 
-        if (challenge.getStatus() == ChallengeStatus.COMPLETED) {
-            distributeRewards(challenge);
-        }
-
-        return mapToChallengeResponse(challenge);
+        return mapToChallengeResponse(updatedChallenge);
     }
 
     @Transactional(readOnly = true)
     public List<ChallengeParticipantResponse> listParticipants(String challengeId) {
-        ChallengeGoal challenge = challengeGoalRepository.findById(challengeId)
+        var challenge = challengeGoalRepository.findById(challengeId)
             .orElseThrow(() -> new ResourceNotFoundException("Desafio não encontrado"));
 
-        List<ChallengeParticipant> participants = participantRepository
+        var participants = participantRepository
             .findTopContributorsByChallengeGoalId(challengeId);
 
         return participants.stream()
             .map(p -> mapToParticipantResponse(p, challenge.getTargetAmount()))
-            .collect(Collectors.toList());
+            .toList();
     }
 
     private void distributeRewards(ChallengeGoal challenge) {
-        List<ChallengeParticipant> participants = participantRepository
-            .findByChallengeGoalId(challenge.getId());
+        var participants = participantRepository.findByChallengeGoalId(challenge.getId());
 
-        for (ChallengeParticipant participant : participants) {
-            if (participant.getStatus() == ParticipantStatus.ACTIVE && !participant.getRewardClaimed()) {
-                User user = participant.getUser();
+        participants.stream()
+            .filter(p -> p.getStatus() == ParticipantStatus.ACTIVE && !p.getRewardClaimed())
+            .forEach(participant -> {
+                var user = participant.getUser();
                 user.setTotalPoints(user.getTotalPoints() + challenge.getRewardPoints());
                 userRepository.save(user);
 
@@ -270,24 +269,25 @@ public class ChallengeGoalService {
                 participant.setStatus(ParticipantStatus.COMPLETED);
                 participantRepository.save(participant);
 
-                // Trigar conquistas de conclusão de desafios
-                try {
-                    long completedChallenges = participantRepository.countByUserIdAndStatus(
-                        user.getId(), ParticipantStatus.COMPLETED
-                    );
-                    achievementService.updateProgress(user.getId(), "CHALLENGES_COMPLETED_5", (int) completedChallenges);
-                } catch (Exception e) {
-                    // Log error but don't fail reward distribution
-                }
-            }
+                updateChallengeCompletionAchievements(user.getId());
+            });
+    }
+
+    private void updateChallengeCompletionAchievements(String userId) {
+        try {
+            var completedChallenges = participantRepository.countByUserIdAndStatus(
+                userId, ParticipantStatus.COMPLETED
+            );
+            achievementService.updateProgress(userId, "CHALLENGES_COMPLETED_5", completedChallenges.intValue());
+        } catch (Exception e) {
         }
     }
 
     private ChallengeGoalResponse mapToChallengeResponse(ChallengeGoal challenge) {
-        ChallengeGoalResponse response = new ChallengeGoalResponse();
+        var response = new ChallengeGoalResponse();
         response.setId(challenge.getId());
 
-        ChallengeGoalResponse.CreatorInfo creatorInfo = new ChallengeGoalResponse.CreatorInfo();
+        var creatorInfo = new ChallengeGoalResponse.CreatorInfo();
         creatorInfo.setId(challenge.getCreator().getId());
         creatorInfo.setUsername(challenge.getCreator().getUsername());
         creatorInfo.setAvatar(challenge.getCreator().getAvatar());
@@ -307,15 +307,12 @@ public class ChallengeGoalService {
         response.setCreatedAt(challenge.getCreatedAt());
         response.setUpdatedAt(challenge.getUpdatedAt());
 
-        List<ChallengeParticipant> topContributors = participantRepository
+        var topContributorsInfo = participantRepository
             .findTopContributorsByChallengeGoalId(challenge.getId())
             .stream()
             .limit(3)
-            .collect(Collectors.toList());
-
-        List<ChallengeGoalResponse.ParticipantInfo> topContributorsInfo = topContributors.stream()
             .map(p -> {
-                ChallengeGoalResponse.ParticipantInfo info = new ChallengeGoalResponse.ParticipantInfo();
+                var info = new ChallengeGoalResponse.ParticipantInfo();
                 info.setId(p.getId());
                 info.setUserId(p.getUser().getId());
                 info.setUsername(p.getUser().getUsername());
@@ -325,7 +322,7 @@ public class ChallengeGoalService {
                 info.setIsCreator(p.getIsCreator());
                 return info;
             })
-            .collect(Collectors.toList());
+            .toList();
 
         response.setTopContributors(topContributorsInfo);
 
@@ -336,11 +333,11 @@ public class ChallengeGoalService {
         ChallengeParticipant participant,
         java.math.BigDecimal targetAmount
     ) {
-        ChallengeParticipantResponse response = new ChallengeParticipantResponse();
+        var response = new ChallengeParticipantResponse();
         response.setId(participant.getId());
         response.setChallengeGoalId(participant.getChallengeGoal().getId());
 
-        ChallengeParticipantResponse.UserInfo userInfo = new ChallengeParticipantResponse.UserInfo();
+        var userInfo = new ChallengeParticipantResponse.UserInfo();
         userInfo.setId(participant.getUser().getId());
         userInfo.setUsername(participant.getUser().getUsername());
         userInfo.setAvatar(participant.getUser().getAvatar());

@@ -1,9 +1,7 @@
-version: '3.8'
-
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
-    container_name: inteliwallet-postgres
+    container_name: inteliwallet-db
     environment:
       POSTGRES_DB: inteliwallet
       POSTGRES_USER: postgres
@@ -14,10 +12,41 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - inteliwallet-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build: .
+    container_name: inteliwallet-api
+    environment:
+      DB_URL: jdbc:postgresql://db:5432/inteliwallet
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      JWT_SECRET: ${JWT_SECRET:-3e154370da8b05e91a3dab3cb743c1ffea35567cadee9cdcf11bb5954510e5495cd9ab381f92f14d11202a964d6d0bc3a6c4fad55f1df4f8dc636765877fdd97}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-86400000}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://localhost:3001}
+      LOG_LEVEL_APP: ${LOG_LEVEL_APP:-DEBUG}
+      LOG_LEVEL_SECURITY: ${LOG_LEVEL_SECURITY:-DEBUG}
+      JPA_SHOW_SQL: ${JPA_SHOW_SQL:-true}
+      JPA_FORMAT_SQL: ${JPA_FORMAT_SQL:-true}
+      SWAGGER_ENABLED: ${SWAGGER_ENABLED:-true}
+    ports:
+      - "8080:8080"
+    depends_on:
+     db:
+       condition: service_healthy
+    networks:
+      - inteliwallet-network
+    restart: unless-stopped
 
 volumes:
   postgres_data:
+    driver: local
 
 networks:
   inteliwallet-network:
     driver: bridge
+

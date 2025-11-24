@@ -18,7 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 @Service
 @RequiredArgsConstructor
@@ -30,26 +30,27 @@ public class FriendService {
     private final AchievementService achievementService;
 
     public List<FriendResponse> listFriends(String userId) {
-        List<User> friends = friendshipRepository.findFriendsByUserId(userId);
+        var friends = friendshipRepository.findFriendsByUserId(userId);
 
-        List<FriendResponse> responses = friends.stream()
+        var responses = friends.stream()
             .map(this::mapToFriendResponse)
             .sorted(Comparator.comparingInt(FriendResponse::getTotalPoints).reversed())
-            .collect(Collectors.toList());
+            .toList();
 
-        for (int i = 0; i < responses.size(); i++) {
-            responses.get(i).setRank(i + 1);
-        }
-
-        return responses;
+        return IntStream.range(0, responses.size())
+            .mapToObj(i -> {
+                responses.get(i).setRank(i + 1);
+                return responses.get(i);
+            })
+            .toList();
     }
 
     @Transactional
     public FriendInviteResponse addFriend(String userId, AddFriendRequest request) {
-        User currentUser = userRepository.findById(userId)
+        var currentUser = userRepository.findById(userId)
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
-        User friend = userRepository.findByUsername(request.getUsername())
+        var friend = userRepository.findByUsername(request.getUsername())
             .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado"));
 
         if (userId.equals(friend.getId())) {
@@ -64,19 +65,19 @@ public class FriendService {
             throw new BadRequestException("Já existe um convite pendente entre vocês");
         }
 
-        FriendInvite invite = new FriendInvite();
+        var invite = new FriendInvite();
         invite.setFromUser(currentUser);
         invite.setToUser(friend);
         invite.setStatus(InviteStatus.PENDING);
 
-        invite = friendInviteRepository.save(invite);
+        var savedInvite = friendInviteRepository.save(invite);
 
-        return mapToInviteResponse(invite);
+        return mapToInviteResponse(savedInvite);
     }
 
     @Transactional
     public void removeFriend(String userId, String friendId) {
-        List<Friendship> friendships = friendshipRepository.findFriendship(userId, friendId);
+        var friendships = friendshipRepository.findFriendship(userId, friendId);
 
         if (friendships.isEmpty()) {
             throw new ResourceNotFoundException("Amizade não encontrada");
@@ -87,17 +88,17 @@ public class FriendService {
 
     @Transactional(readOnly = true)
     public List<FriendInviteResponse> listInvites(String userId) {
-        List<FriendInvite> invites = friendInviteRepository
+        var invites = friendInviteRepository
             .findByToUserIdAndStatus(userId, InviteStatus.PENDING);
 
         return invites.stream()
             .map(this::mapToInviteResponse)
-            .collect(Collectors.toList());
+            .toList();
     }
 
     @Transactional
     public FriendResponse acceptInvite(String userId, String inviteId) {
-        FriendInvite invite = friendInviteRepository.findById(inviteId)
+        var invite = friendInviteRepository.findById(inviteId)
             .orElseThrow(() -> new ResourceNotFoundException("Convite não encontrado"));
 
         if (!invite.getToUser().getId().equals(userId)) {
@@ -111,36 +112,41 @@ public class FriendService {
         invite.setStatus(InviteStatus.ACCEPTED);
         friendInviteRepository.save(invite);
 
-        Friendship friendship1 = new Friendship();
+        var friendship1 = new Friendship();
         friendship1.setUser(invite.getFromUser());
         friendship1.setFriend(invite.getToUser());
 
-        Friendship friendship2 = new Friendship();
+        var friendship2 = new Friendship();
         friendship2.setUser(invite.getToUser());
         friendship2.setFriend(invite.getFromUser());
 
         friendshipRepository.save(friendship1);
         friendshipRepository.save(friendship2);
 
-        try {
-            long friendCountToUser = friendshipRepository.findFriendsByUserId(userId).size();
-            achievementService.updateProgress(userId, "FIRST_FRIEND", (int) friendCountToUser);
-            achievementService.updateProgress(userId, "FRIENDS_5", (int) friendCountToUser);
-            achievementService.updateProgress(userId, "FRIENDS_20", (int) friendCountToUser);
-
-            long friendCountFromUser = friendshipRepository.findFriendsByUserId(invite.getFromUser().getId()).size();
-            achievementService.updateProgress(invite.getFromUser().getId(), "FIRST_FRIEND", (int) friendCountFromUser);
-            achievementService.updateProgress(invite.getFromUser().getId(), "FRIENDS_5", (int) friendCountFromUser);
-            achievementService.updateProgress(invite.getFromUser().getId(), "FRIENDS_20", (int) friendCountFromUser);
-        } catch (Exception e) {
-        }
+        updateFriendAchievements(userId, invite.getFromUser().getId());
 
         return mapToFriendResponse(invite.getFromUser());
     }
 
+    private void updateFriendAchievements(String toUserId, String fromUserId) {
+        try {
+            var friendCountToUser = friendshipRepository.findFriendsByUserId(toUserId).size();
+            achievementService.updateProgress(toUserId, "FIRST_FRIEND", friendCountToUser);
+            achievementService.updateProgress(toUserId, "FRIENDS_5", friendCountToUser);
+            achievementService.updateProgress(toUserId, "FRIENDS_20", friendCountToUser);
+
+            var friendCountFromUser = friendshipRepository.findFriendsByUserId(fromUserId).size();
+            achievementService.updateProgress(fromUserId, "FIRST_FRIEND", friendCountFromUser);
+            achievementService.updateProgress(fromUserId, "FRIENDS_5", friendCountFromUser);
+            achievementService.updateProgress(fromUserId, "FRIENDS_20", friendCountFromUser);
+        } catch (Exception e) {
+            // Log error but don't fail friendship creation
+        }
+    }
+
     @Transactional
     public void declineInvite(String userId, String inviteId) {
-        FriendInvite invite = friendInviteRepository.findById(inviteId)
+        var invite = friendInviteRepository.findById(inviteId)
             .orElseThrow(() -> new ResourceNotFoundException("Convite não encontrado"));
 
         if (!invite.getToUser().getId().equals(userId)) {
@@ -156,7 +162,7 @@ public class FriendService {
     }
 
     private FriendResponse mapToFriendResponse(User user) {
-        FriendResponse response = new FriendResponse();
+        var response = new FriendResponse();
         response.setId(user.getId());
         response.setUsername(user.getUsername());
         response.setAvatar(user.getAvatar());
@@ -167,10 +173,10 @@ public class FriendService {
     }
 
     private FriendInviteResponse mapToInviteResponse(FriendInvite invite) {
-        FriendInviteResponse response = new FriendInviteResponse();
+        var response = new FriendInviteResponse();
         response.setId(invite.getId());
 
-        FriendInviteResponse.FromUserInfo fromUserInfo = new FriendInviteResponse.FromUserInfo();
+        var fromUserInfo = new FriendInviteResponse.FromUserInfo();
         fromUserInfo.setId(invite.getFromUser().getId());
         fromUserInfo.setUsername(invite.getFromUser().getUsername());
         fromUserInfo.setAvatar(invite.getFromUser().getAvatar());

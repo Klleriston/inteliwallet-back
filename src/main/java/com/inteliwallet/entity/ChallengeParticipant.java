@@ -59,9 +59,6 @@ public class ChallengeParticipant {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    @OneToOne(mappedBy = "participant", cascade = CascadeType.ALL, orphanRemoval = true)
-    private ChallengeStreak challengeStreak;
-
     public enum ParticipantStatus {
         ACTIVE("active"),
         COMPLETED("completed"),

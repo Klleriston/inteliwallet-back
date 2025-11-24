@@ -1,0 +1,778 @@
+{
+  "info": {
+    "name": "InteliWallet API",
+    "description": "API REST para InteliWallet - Carteira Financeira Gamificada",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "inteliwallet"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"usuario_teste\",\n  \"email\": \"usuario@teste.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/register",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"usuario@teste.com\",\n  \"password\": \"senha123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "me"]
+            }
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "logout"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Friends",
+      "item": [
+        {
+          "name": "List Friends",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/friends",
+              "host": ["{{baseUrl}}"],
+              "path": ["friends"]
+            }
+          }
+        },
+        {
+          "name": "Add Friend",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"amigo_teste\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/friends/add",
+              "host": ["{{baseUrl}}"],
+              "path": ["friends", "add"]
+            }
+          }
+        },
+        {
+          "name": "List Friend Invites",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/friends/invites",
+              "host": ["{{baseUrl}}"],
+              "path": ["friends", "invites"]
+            }
+          }
+        },
+        {
+          "name": "Accept Friend Invite",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/friends/invites/:inviteId/accept",
+              "host": ["{{baseUrl}}"],
+              "path": ["friends", "invites", ":inviteId", "accept"],
+              "variable": [
+                {
+                  "key": "inviteId",
+                  "value": "invite-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Decline Friend Invite",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/friends/invites/:inviteId/decline",
+              "host": ["{{baseUrl}}"],
+              "path": ["friends", "invites", ":inviteId", "decline"],
+              "variable": [
+                {
+                  "key": "inviteId",
+                  "value": "invite-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Remove Friend",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/friends/:friendId",
+              "host": ["{{baseUrl}}"],
+              "path": ["friends", ":friendId"],
+              "variable": [
+                {
+                  "key": "friendId",
+                  "value": "friend-id-here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Challenges",
+      "item": [
+        {
+          "name": "Create Challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Economizar para viagem\",\n  \"description\": \"Desafio para economizar dinheiro para uma viagem\",\n  \"targetAmount\": 5000.00,\n  \"category\": \"viagem\",\n  \"deadline\": \"2025-12-31\",\n  \"maxParticipants\": 10,\n  \"rewardPoints\": 100\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/challenges",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges"]
+            }
+          }
+        },
+        {
+          "name": "List My Challenges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges"]
+            }
+          }
+        },
+        {
+          "name": "List Active Challenges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges/active",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", "active"]
+            }
+          }
+        },
+        {
+          "name": "List Available Challenges",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges/available",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", "available"]
+            }
+          }
+        },
+        {
+          "name": "Get Challenge By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges/:challengeId",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", ":challengeId"],
+              "variable": [
+                {
+                  "key": "challengeId",
+                  "value": "challenge-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Challenge",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Economizar para viagem - Atualizado\",\n  \"description\": \"Descrição atualizada\",\n  \"targetAmount\": 6000.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/challenges/:challengeId",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", ":challengeId"],
+              "variable": [
+                {
+                  "key": "challengeId",
+                  "value": "challenge-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Challenge",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges/:challengeId",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", ":challengeId"],
+              "variable": [
+                {
+                  "key": "challengeId",
+                  "value": "challenge-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Join Challenge",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges/:challengeId/join",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", ":challengeId", "join"],
+              "variable": [
+                {
+                  "key": "challengeId",
+                  "value": "challenge-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Leave Challenge",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges/:challengeId/leave",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", ":challengeId", "leave"],
+              "variable": [
+                {
+                  "key": "challengeId",
+                  "value": "challenge-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Contribute to Challenge",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 500.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/challenges/:challengeId/contribute",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", ":challengeId", "contribute"],
+              "variable": [
+                {
+                  "key": "challengeId",
+                  "value": "challenge-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Challenge Participants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/challenges/:challengeId/participants",
+              "host": ["{{baseUrl}}"],
+              "path": ["challenges", ":challengeId", "participants"],
+              "variable": [
+                {
+                  "key": "challengeId",
+                  "value": "challenge-id-here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Goals",
+      "item": [
+        {
+          "name": "Create Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Comprar notebook\",\n  \"description\": \"Meta pessoal para comprar um notebook novo\",\n  \"targetAmount\": 3000.00,\n  \"category\": \"tecnologia\",\n  \"deadline\": \"2025-06-30\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals"]
+            }
+          }
+        },
+        {
+          "name": "List Goals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/goals",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals"]
+            }
+          }
+        },
+        {
+          "name": "Get Goal By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/goals/:goalId",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals", ":goalId"],
+              "variable": [
+                {
+                  "key": "goalId",
+                  "value": "goal-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Goal",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Comprar notebook - Atualizado\",\n  \"targetAmount\": 3500.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/goals/:goalId",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals", ":goalId"],
+              "variable": [
+                {
+                  "key": "goalId",
+                  "value": "goal-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Goal",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/goals/:goalId",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals", ":goalId"],
+              "variable": [
+                {
+                  "key": "goalId",
+                  "value": "goal-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Contribute to Goal",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 300.00\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/goals/:goalId/contribute",
+              "host": ["{{baseUrl}}"],
+              "path": ["goals", ":goalId", "contribute"],
+              "variable": [
+                {
+                  "key": "goalId",
+                  "value": "goal-id-here"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Transactions",
+      "item": [
+        {
+          "name": "Create Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"INCOME\",\n  \"amount\": 1000.00,\n  \"description\": \"Salário\",\n  \"category\": \"salario\",\n  \"date\": \"2025-11-24\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"]
+            }
+          }
+        },
+        {
+          "name": "List Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions"]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/:transactionId",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", ":transactionId"],
+              "variable": [
+                {
+                  "key": "transactionId",
+                  "value": "transaction-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Transaction",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 1200.00,\n  \"description\": \"Salário - Atualizado\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/transactions/:transactionId",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", ":transactionId"],
+              "variable": [
+                {
+                  "key": "transactionId",
+                  "value": "transaction-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Transaction",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/:transactionId",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", ":transactionId"],
+              "variable": [
+                {
+                  "key": "transactionId",
+                  "value": "transaction-id-here"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Transaction Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/transactions/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["transactions", "stats"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Achievements",
+      "item": [
+        {
+          "name": "List User Achievements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/achievements",
+              "host": ["{{baseUrl}}"],
+              "path": ["achievements"]
+            }
+          }
+        },
+        {
+          "name": "List All Achievements",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/achievements/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["achievements", "all"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Leaderboard",
+      "item": [
+        {
+          "name": "Get Global Leaderboard",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/leaderboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["leaderboard"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "User",
+      "item": [
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"novo_username\",\n  \"avatar\": \"😎\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"senha_atual\",\n  \"newPassword\": \"senha_nova\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/users/change-password",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Complete Onboarding",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/users/complete-onboarding",
+              "host": ["{{baseUrl}}"],
+              "path": ["users", "complete-onboarding"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
